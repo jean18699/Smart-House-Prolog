@@ -34,6 +34,46 @@ salir(Persona):-
     not(dormido(Persona)),assertz(salio(Persona)).
 
 
+%Existen dispositivos electronicos que tienen 3 atributos: nombre,
+% estado y si es manual o automatico
+:-dynamic electronico/1.
+%objeto(television, automatico)
+
+:-dynamic automatico/1.
+:-dynamic manual/1.
+
+nuevo_electronico(Electronico):-
+    not(electronico(Electronico)), %si no estaba agregado
+    assertz(electronico(Electronico)),
+    assertz(automatico(Electronico)). %Los electronicos son automaticos por defecto
+
+quitar_electronico(Electronico):-
+    electronico(Electronico),
+    retract(electronico(Electronico)),
+    (manual(Electronico), retract(manual(Electronico)));
+    (automatico(Electronico), retract(automatico(Electronico))).
+
+% Capacidad de cambiar el modo de uso de un electronico, controlado por
+% la casa o por la persona
+modo_manual(Electronico):-
+    electronico(Electronico),
+    retract(automatico(Electronico)),
+    assertz(manual(Electronico)).
+
+modo_automatico(Electronico):-
+    electronico(Electronico), not(automatico(Electronico)),
+    retract(manual(Electronico)), %ya no es manual
+    assertz(automatico(Electronico)). %ahora es automatico
+
+
+
+%encender(Electronico):-electronico(Electronico)
+
+
+
+
+
+
 
 % Cerrar puertas y ventanas en el caso de que todos hayan salido o esten
 % durmiendo:
