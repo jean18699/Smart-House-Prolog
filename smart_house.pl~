@@ -74,7 +74,7 @@ todos_salieron([_|Cola]):- todos_salieron(Cola).
 % dispositivo electronico que se inicia en automatico
 nueva_puerta(Puerta):-
     not(puerta(Puerta)), assertz(automatico(Puerta)),
-    assertz(puerta_cerrada(Puerta)),assertz(puerta(Puerta)).
+    assertz(puerta(Puerta)).
 
 quitar_puerta(Puerta):-
     puerta(Puerta),
