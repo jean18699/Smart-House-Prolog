@@ -48,24 +48,6 @@ volver(Persona):-
     miembro(Persona),salio(Persona),
     retract(salio(Persona)).
 
-% Cerrar puertas y ventanas en el caso de que todos hayan salido o esten
-% durmiendo:
-cerrar_puertas_automaticamente():- (get_miembros(Miembros), todos_dormidos(Miembros)),!.
-cerrar_puertas_automaticamente():- get_miembros(Miembros), todos_salieron(Miembros),!.
-
-
-% revisar recursivamente si todos los miembros de la lista de miembros estan durmiendo
-todos_dormidos([]):-true.
-todos_dormidos([Cabeza|_]):- not(dormido(Cabeza)),!,fail.
-todos_dormidos([_|Cola]):- todos_dormidos(Cola).
-
-
-% revisar recursivamente si todos los miembros de la lista de miembros
-% estan salieron de la casa
-todos_salieron([]):-true.
-todos_salieron([Cabeza|_]):- not(salio(Cabeza)),!,fail.
-todos_salieron([_|Cola]):- todos_salieron(Cola).
-
 %control de puertas
 :-dynamic puerta/1.
 :-dynamic puerta_abierta/1.
@@ -93,25 +75,6 @@ cerrar_puerta(Puerta):-
 
 /*======================================================================CONTROL DE LOS DISPOSITIVOS DEL HOGAR========================================================================*/
 
-%Existen dispositivos electronicos que tienen 3 atributos: nombre,
-% estado y si es manual o automatico
-:-dynamic electronico/1.
-%objeto(television, automatico)
-
-:-dynamic automatico/1.
-:-dynamic manual/1.
-
-nuevo_electronico(Electronico):-
-    not(electronico(Electronico)), %si no estaba agregado
-    assertz(electronico(Electronico)),
-    assertz(automatico(Electronico)). %Los electronicos son automaticos por defecto
-
-quitar_electronico(Electronico):-
-    electronico(Electronico),
-    retract(electronico(Electronico)),
-    (manual(Electronico), retract(manual(Electronico)));
-    (automatico(Electronico), retract(automatico(Electronico))).
-
 % Capacidad de cambiar el modo de uso de un electronico, controlado por
 % la casa o por la persona
 modo_manual(Electronico):-
@@ -124,12 +87,71 @@ modo_automatico(Electronico):-
     retract(manual(Electronico)), %ya no es manual
     assertz(automatico(Electronico)). %ahora es automatico
 
+/*FUNCIONES DEL HOGAR SEGUN LOS SENSORES */
+
+% Cerrar puertas y ventanas en el caso de que todos hayan salido o esten
+% durmiendo. Ademas, solo se cierran las puertas automaticas
+cerrar_puertas_automaticamente():- (get_miembros(Miembros), todos_dormidos(Miembros)),!,
+    puerta(Puerta), automatico(Puerta), cerrar_puerta(Puerta).
+
+cerrar_puertas_automaticamente():- get_miembros(Miembros), todos_salieron(Miembros),!,
+    puerta(Puerta), automatico(Puerta), cerrar_puerta(Puerta).
+
+% revisar recursivamente si todos los miembros de la lista de miembros estan durmiendo
+todos_dormidos([]):-true.
+todos_dormidos([Cabeza|_]):- not(dormido(Cabeza)),!,fail.
+todos_dormidos([_|Cola]):- todos_dormidos(Cola).
+
+
+% revisar recursivamente si todos los miembros de la lista de miembros
+% estan salieron de la casa
+todos_salieron([]):-true.
+todos_salieron([Cabeza|_]):- not(salio(Cabeza)),!,fail.
+todos_salieron([_|Cola]):- todos_salieron(Cola).
 
 
 
+/*=============================================================MODULO DE RECURSOS================================================================================================*/
+
+% Existen dispositivos electronicos que tienen 3 atributos: Nombre,
+% consumo y estado (encendido o apagado).
+
+:-dynamic electronico/2.
+:-dynamic automatico/1.
+:-dynamic manual/1.
+:-dynamic encendido/2.
+:-dynamic apagado/2.
+
+nuevo_electronico(Nombre,Consumo):-
+    not(electronico(Nombre,Consumo)),
+    assertz(electronico(Nombre,Consumo)),
+    assertz(encendido(Nombre,Consumo)),
+    assertz(automatico(Nombre)). %Los electronicos son automaticos por defecto
+
+quitar_electronico(Electronico):-
+    electronico(Electronico,_),
+    retract(electronico(Electronico,_)),
+    (manual(Electronico), retract(manual(Electronico)));
+    (automatico(Electronico), retract(automatico(Electronico))).
+
+encender(Electronico):-
+    electronico(Electronico,_),
+    not(encendido(Electronico,_)),
+    retract(apagado(Electronico,_)), assertz(encendido(Electronico)).
 
 
+apagar(Electronico):-
+    electronico(Electronico,_),
+    not(apagado(Electronico,_)),
+    retract(encendido(Electronico,_)), assertz(apagado(Electronico)).
 
+
+lista_consumos_activos(Gastado):-findall(Consumo, encendido(_,Consumo),Gastado).
+
+consumo_total([],0).
+consumo_total([H|L],Total):- consumo_total(L,Cont), Total is Cont + H.
+
+consumo_total_activo(Total):-lista_consumos_activos(Gastado),consumo_total(Gastado,Total).
 
 
 
