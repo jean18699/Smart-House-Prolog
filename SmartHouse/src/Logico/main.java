@@ -5,6 +5,7 @@ import java.util.Map;
 
 import org.jpl7.JPL;
 import org.jpl7.Query;
+import org.jpl7.Term;
 
 
 public class main {
@@ -18,11 +19,10 @@ public class main {
 		
  
 		Query q = new Query("consult('src/Smart_house.pl')");
-		System.out.println(q.hasSolution());  
-	
-		//q.nextSolution();
 		
-	/*	q = new Query("nuevo_miembro(pepe)");
+		q.nextSolution();
+		
+		q = new Query("nuevo_miembro(pepe)");
 		q.nextSolution();
 		
 		q = new Query("nuevo_miembro(martina)");
@@ -48,7 +48,7 @@ public class main {
 		{
 			System.out.println(res[i].get("Total"));
 		}
-		*/
+		
 	}
 
 }
