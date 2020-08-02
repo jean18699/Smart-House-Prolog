@@ -146,11 +146,12 @@ apagar(Electronico):-
     retract(encendido(Electronico,_)), assertz(apagado(Electronico)).
 
 
-lista_consumos(Gastado):-findall(Consumo, encendido(_,Consumo),Gastado).
+lista_consumos_activos(Gastado):-findall(Consumo, encendido(_,Consumo),Gastado).
+
 consumo_total([],0).
 consumo_total([H|L],Total):- consumo_total(L,Cont), Total is Cont + H.
 
-consumo_total_encendidos(Total):-lista_consumos(Gastado),consumo_total(Gastado,Total).
+consumo_total_activo(Total):-lista_consumos_activos(Gastado),consumo_total(Gastado,Total).
 
 
 
