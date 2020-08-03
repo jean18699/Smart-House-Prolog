@@ -17,8 +17,15 @@ public class main {
 	public static void main(String[] args) {
 		
 		
- 
-		Query q = new Query("consult('src/Smart_house.pl')");
+		Casa casa = new Casa();
+		
+		casa.addElectronico("nevera",65);
+		casa.addElectronico("nevera2",65);
+		casa.getElectronicos();
+		//casa.get_miembros();
+		
+		
+	/*	Query q = new Query("consult('src/Smart_house.pl')");
 		
 		q.nextSolution();
 		
@@ -47,7 +54,7 @@ public class main {
 		for(int i = 0; i < res.length; i++)
 		{
 			System.out.println(res[i].get("Total"));
-		}
+		}*/
 		
 	}
 
