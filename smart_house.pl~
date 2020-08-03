@@ -1,4 +1,4 @@
-%MODULO DE SEGURIDAD
+/*============================MODULO DE SEGURIDAD===================*/
 
 % El sistema experto recibirá información de sensores de movimiento, y de
 % otros tipos, y será alimentado con protocolos de seguridad para

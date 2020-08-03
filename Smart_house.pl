@@ -154,6 +154,13 @@ consumo_total([H|L],Total):- consumo_total(L,Cont), Total is Cont + H.
 consumo_total_activo(Total):-lista_consumos_activos(Gastado),consumo_total(Gastado,Total).
 
 
+%Identificar si algún lugar de la casa está vacío.
+
+:- dynamic lugar/2.
+
+nuevo_lugar(Nombre, Electronicos):- not(lugar(Nombre, Electronicos)), assertz(lugar(Nombre, Electronicos)).
+
+lugar_vacio(Nombre):-lugar(Nombre, Electronicos), member(X, Electronicos), apagar(X).
 
 
 
