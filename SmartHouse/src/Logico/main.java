@@ -19,8 +19,7 @@ public class main {
 		
 		Casa casa = new Casa();
 		
-		casa.addElectronico("nevera",65);
-		casa.addElectronico("nevera2",65);
+	
 		casa.getElectronicos();
 		//casa.get_miembros();
 		

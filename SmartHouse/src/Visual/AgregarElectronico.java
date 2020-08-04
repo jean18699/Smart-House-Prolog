@@ -15,29 +15,43 @@ import javax.swing.JTextField;
 import javax.swing.SwingConstants;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
+import javax.swing.JSpinner;
 
-public class AgregarPuerta extends JDialog {
+public class AgregarElectronico extends JDialog {
 
 	private final JPanel contentPanel = new JPanel();
 	private JTextField txtNombre;
 	private Casa casa;
+	JSpinner spnConsumo;
 
-	public AgregarPuerta(Casa casa) {
+	public AgregarElectronico(Casa casa) {
 		setTitle("Agregar nueva puerta");
-		setBounds(100, 100, 335, 119);
+		setBounds(100, 100, 335, 155);
 		getContentPane().setLayout(new BorderLayout());
-		contentPanel.setLayout(new FlowLayout());
 		contentPanel.setBorder(new EmptyBorder(5, 5, 5, 5));
 		getContentPane().add(contentPanel, BorderLayout.CENTER);
+		contentPanel.setLayout(null);
 		{
-			JLabel lblNombre = new JLabel("Nombre de la puerta:");
+			JLabel lblNombre = new JLabel("Nombre del electronico:");
+			lblNombre.setBounds(17, 13, 113, 14);
 			contentPanel.add(lblNombre);
 		}
 		{
 			txtNombre = new JTextField();
+			txtNombre.setBounds(135, 10, 166, 20);
 			txtNombre.setHorizontalAlignment(SwingConstants.LEFT);
 			contentPanel.add(txtNombre);
 			txtNombre.setColumns(20);
+		}
+		{
+			JLabel lblConsumo = new JLabel("Consumo:");
+			lblConsumo.setBounds(82, 38, 48, 14);
+			contentPanel.add(lblConsumo);
+		}
+		{
+			spnConsumo = new JSpinner();
+			spnConsumo.setBounds(135, 35, 174, 20);
+			contentPanel.add(spnConsumo);
 		}
 		{
 			JPanel buttonPane = new JPanel();
@@ -47,7 +61,8 @@ public class AgregarPuerta extends JDialog {
 				JButton okButton = new JButton("OK");
 				okButton.addActionListener(new ActionListener() {
 					public void actionPerformed(ActionEvent arg0) {
-						casa.nuevoQuery("nueva_puerta", txtNombre.getText());
+						//casa.addElectronico(txtNombre.getText(), );
+						casa.addElectronico(txtNombre.getText(),(int) spnConsumo.getValue());
 						//casa.addPuerta(txtNombre.getText());
 						dispose();
 					}

@@ -9,6 +9,13 @@
 % ejemplo de esto es que cerraría todas las puertas de acceso al hogar si
 % las personas salen o si detecta que todas están durmiendo.
 
+:-dynamic modo_visita/0.
+
+visitantes(on):-not(modo_visita),assertz(modo_visita).
+visitantes(off):-modo_visita,retract(modo_visita).
+
+
+
 %miembros de la familia:
 :-dynamic miembro/1.
 
@@ -18,7 +25,12 @@ nuevo_miembro(Persona):-
     assertz(miembro(Persona)).
 
 quitar_miembro(Persona):-
-    miembro(Persona),retract(Persona).
+    (dormido(Persona), retract(dormido(Persona)));
+    (salio(Persona), retract(salio(Persona))).
+
+quitar_miembro(Persona):-
+    miembro(Persona),retract(miembro(Persona)).
+
 
 %listar miembros de la familia.
 get_miembros(Miembros):-setof(Miembro, miembro(Miembro), Miembros).
@@ -52,11 +64,11 @@ volver(Persona):-
 :-dynamic puerta/1.
 :-dynamic puerta_abierta/1.
 :-dynamic puerta_cerrada/1.
-% puerta(sala,abierta). ubicacion y estado. La puerta sera un
-% dispositivo electronico que se inicia en automatico
+
+
 nueva_puerta(Puerta):-
     not(puerta(Puerta)), assertz(automatico(Puerta)),
-    assertz(puerta_cerrada(Puerta)),assertz(puerta(Puerta)).
+    assertz(puerta_abierta(Puerta)),assertz(puerta(Puerta)).
 
 quitar_puerta(Puerta):-
     puerta(Puerta),
@@ -66,42 +78,54 @@ quitar_puerta(Puerta):-
 
 abrir_puerta(Puerta):-
     puerta(Puerta),not(puerta_abierta(Puerta)),
-    retract(puerta_cerrada(Puerta)),assertz(puerta_abierta(puerta)).
+    retract(puerta_cerrada(Puerta)),assertz(puerta_abierta(Puerta)).
 
 cerrar_puerta(Puerta):-
     puerta(Puerta),not(puerta_cerrada(Puerta)),
-    retract(puerta_abierta(Puerta)),assertz(puerta_cerrada(puerta)).
+    retract(puerta_abierta(Puerta)),assertz(puerta_cerrada(Puerta)).
+
+
+get_puertas_automaticas(Puertas):-findall(Puerta,(puerta(Puerta),automatico(Puerta)),Puertas).
+
 
 
 /*======================================================================CONTROL DE LOS DISPOSITIVOS DEL HOGAR========================================================================*/
 
 % Capacidad de cambiar el modo de uso de un electronico, controlado por
 % la casa o por la persona
-modo_manual(Electronico):-
-    electronico(Electronico),
+modo_manual(Electronico):- %Para los electronicos
+    electronico(Electronico),!,not(manual(Electronico)),!,
     retract(automatico(Electronico)),
     assertz(manual(Electronico)).
 
+modo_manual_puerta(Puerta):- %Para las puertas
+    puerta(Puerta),!,not(manual(Puerta)),!,
+    retract(automatico(Puerta)),
+    assertz(manual(Puerta)).
+
 modo_automatico(Electronico):-
-    electronico(Electronico), not(automatico(Electronico)),
+    electronico(Electronico),!, not(automatico(Electronico)),!,
     retract(manual(Electronico)), %ya no es manual
     assertz(automatico(Electronico)). %ahora es automatico
+
+modo_automatico_puerta(Puerta):- %Para las puertas
+    puerta(Puerta),!, not(automatico(Puerta)),!,
+    retract(manual(Puerta)), %ya no es manual
+    assertz(automatico(Puerta)). %ahora es automatico
 
 /*FUNCIONES DEL HOGAR SEGUN LOS SENSORES */
 
 % Cerrar puertas y ventanas en el caso de que todos hayan salido o esten
 % durmiendo. Ademas, solo se cierran las puertas automaticas
-cerrar_puertas_automaticamente():- (get_miembros(Miembros), todos_dormidos(Miembros)),!,
-    puerta(Puerta), automatico(Puerta), cerrar_puerta(Puerta).
+alerta_puertas():- not(modo_visita),(get_miembros(Miembros), todos_dormidos(Miembros)),!,
+    findall(Puerta,puerta(Puerta),Puertas),cerrar_puertas_automaticas(Puertas).
 
-cerrar_puertas_automaticamente():- get_miembros(Miembros), todos_salieron(Miembros),!,
-    puerta(Puerta), automatico(Puerta), cerrar_puerta(Puerta).
+alerta_puertas():-not(modo_visita), get_miembros(Miembros), todos_salieron(Miembros),!,findall(Puerta,puerta(Puerta),Puertas),cerrar_puertas_automaticas(Puertas).
 
 % revisar recursivamente si todos los miembros de la lista de miembros estan durmiendo
 todos_dormidos([]):-true.
 todos_dormidos([Cabeza|_]):- not(dormido(Cabeza)),!,fail.
 todos_dormidos([_|Cola]):- todos_dormidos(Cola).
-
 
 % revisar recursivamente si todos los miembros de la lista de miembros
 % estan salieron de la casa
@@ -109,49 +133,83 @@ todos_salieron([]):-true.
 todos_salieron([Cabeza|_]):- not(salio(Cabeza)),!,fail.
 todos_salieron([_|Cola]):- todos_salieron(Cola).
 
+cerrar_puertas_automaticas([]):-!.
+cerrar_puertas_automaticas([H|L]):-puerta(H),automatico(H),cerrar_puerta(H),cerrar_puertas_automaticas(L).
+cerrar_puertas_automaticas([_|L]):-cerrar_puertas_automaticas(L).
+
 
 
 /*=============================================================MODULO DE RECURSOS================================================================================================*/
 
-% Existen dispositivos electronicos que tienen 3 atributos: Nombre,
-% consumo y estado (encendido o apagado).
-
-:-dynamic electronico/2.
-:-dynamic automatico/1.
-:-dynamic manual/1.
-:-dynamic encendido/2.
-:-dynamic apagado/2.
+:-dynamic electronico/1. %electronico(nombreElectronico).
+:-dynamic automatico/1. %automatico(nombreElectronico).
+:-dynamic manual/1. %manual(nombreElectronico).
+:-dynamic encendido/1. %encendido(nombreElectronico).
+:-dynamic apagado/1. %apagado(nombreElectronico).
+:-dynamic consumo/2. %consumo(Nombre,Consumo).
+:-dynamic llave/1. %llave(baño1). -> llave de agua.
+:-dynamic llave_abierta/1.
+:-dynamic llave_cerrada/1.
 
 nuevo_electronico(Nombre,Consumo):-
-    not(electronico(Nombre,Consumo)),
-    assertz(electronico(Nombre,Consumo)),
-    assertz(encendido(Nombre,Consumo)),
-    assertz(automatico(Nombre)). %Los electronicos son automaticos por defecto
+    not(electronico(Nombre)),
+    assertz(electronico(Nombre)),
+    assertz(automatico(Nombre)),
+    assertz(apagado(Nombre)),
+    assertz(consumo(Nombre,Consumo)). %Los electronicos son automaticos por defecto
 
 quitar_electronico(Electronico):-
-    electronico(Electronico,_),
-    retract(electronico(Electronico,_)),
+    electronico(Electronico),
+    retract(electronico(Electronico)),
+    retract(consumo(Electronico,_)),
     (manual(Electronico), retract(manual(Electronico)));
-    (automatico(Electronico), retract(automatico(Electronico))).
+    (automatico(Electronico), retract(automatico(Electronico))),
+    (encendido(Electronico), retract(encendido(Electronico)));
+    (apagado(Electronico), retract(apagado(Electronico))).
 
 encender(Electronico):-
-    electronico(Electronico,_),
-    not(encendido(Electronico,_)),
-    retract(apagado(Electronico,_)), assertz(encendido(Electronico)).
+    electronico(Electronico),
+    not(encendido(Electronico)),
+    retract(apagado(Electronico)), assertz(encendido(Electronico)).
 
 
 apagar(Electronico):-
-    electronico(Electronico,_),
-    not(apagado(Electronico,_)),
-    retract(encendido(Electronico,_)), assertz(apagado(Electronico)).
+    electronico(Electronico),
+    not(apagado(Electronico)),
+    retract(encendido(Electronico)), assertz(apagado(Electronico)).
+
+get_consumo_encendidos(Consumos):-findall(Consumo, (consumo(Electronico,Consumo),encendido(Electronico)),Consumos).
+suma_encendidos([],0).
+suma_encendidos([H|L],Total):-suma_encendidos(L,Con), Total is Con + H.
+
+% regla para devolver el total de consumo de todos los elementos
+% encendidos
+get_total_consumo(Total):- get_consumo_encendidos(Consumos),suma_encendidos(Consumos,Total).
 
 
-lista_consumos_activos(Gastado):-findall(Consumo, encendido(_,Consumo),Gastado).
+%llaves de agua de la casa
+nueva_llave(Nombre):-
+    not(llave(Nombre)),
+    assertz(llave(Nombre)),
+    assertz(llave_cerrada(Nombre)).
 
-consumo_total([],0).
-consumo_total([H|L],Total):- consumo_total(L,Cont), Total is Cont + H.
+quitar_llave(Nombre):-
+    llave(Nombre),!,
+    retract(llave(Nombre)),!,
+    (llave_cerrada(Nombre), retract(llave_cerrada(Nombre)));
+    (llave_abierta(Nombre), retract(llave_abierta(Nombre))).
 
-consumo_total_activo(Total):-lista_consumos_activos(Gastado),consumo_total(Gastado,Total).
+abrir_llave(Nombre):-
+    llave(Nombre),
+    not(llave_abierta(llave)),
+    retract(llave_cerrada(Nombre)),assert(llave_abierta(llave)).
+
+cerrar_llave(Nombre):-
+    llave(Nombre),
+    llave_abierta(llave),
+    retract(llave_abierta(Nombre)),assert(llave_cerrada(llave)).
+
+
 
 
 

@@ -23,23 +23,23 @@ public class Casa {
 	ArrayList<MiembroFamilia> miembros = new ArrayList<MiembroFamilia>();
 	ArrayList<String> puertas = new ArrayList<String>();
 	
-	Thread dormirPersonas = new Thread(() -> {
+	/*Thread dormirPersonas = new Thread(() -> {
         try {
-			dormir();
+			dormir(null);
 		} catch (InterruptedException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
     });
-	
-	Thread despertarPersonas = new Thread(() -> {
+	*/
+	/*Thread despertarPersonas = new Thread(() -> {
         try {
-			despertar();
+			despertar(null);
 		} catch (InterruptedException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-    });
+    });*/
 	
 	public Casa()
 	{
@@ -71,17 +71,40 @@ public class Casa {
 		
 	}
 	
-	public void getNombreMiembros(DefaultListModel<String> modelListMiembros)
+	public void getMiembros(DefaultListModel<String> modelListMiembros)
 	{
 		modelListMiembros.clear();
 	
-		for(int i = 0; i < miembros.size(); i++)
-		{
-			modelListMiembros.add(i, miembros.get(i).getNombre());
-			
+		String queryText = String.format("miembro(X)");
+	
+		q = new Query(queryText);
 		
+		Map<String, Term>[] res = q.allSolutions();
+		
+		for(int i = 0; i < res.length; i++)
+		{
+			modelListMiembros.add(i, res[i].get("X").toString());
 		}
+		
 	}
+	
+	public void getElectronicos(DefaultListModel<String> modelListElectronicos)
+	{
+		modelListElectronicos.clear();
+	
+		String queryText = String.format("electronico(X)");
+	
+		q = new Query(queryText);
+		
+		Map<String, Term>[] res = q.allSolutions();
+		
+		for(int i = 0; i < res.length; i++)
+		{
+			modelListElectronicos.add(i, res[i].get("X").toString());
+		}
+		
+	}
+	
 	
 	public synchronized MiembroFamilia getMiembro(String nombre)
 	{
@@ -98,71 +121,203 @@ public class Casa {
 		return null;
 	}
 	
-	public void dormir() throws InterruptedException
+	public boolean dormir(String nombre) /*throws InterruptedException*/
 	{
-		String queryText;
-		Random rand = new Random();
-		int index;
-		String persona;
+	//	String queryText;
+		//Random rand = new Random();
+		//int index;
+	//	String persona;
 		/*do
 		{*/
 		
-			if(!miembros.isEmpty()) {
+		/*	if(!miembros.isEmpty()) {
 
 				//Thread.sleep(5000);
 				index = rand.nextInt(miembros.size());
 				
 				persona = miembros.get(index).getNombre();
 				
-				
-				queryText = String.format("dormir(%s)", persona);
+		*/		
+				String queryText = String.format("dormir(%s)", nombre);
 				q = new Query(queryText);
 				
 				
 				if(q.hasSolution())
+				{					
+					return true;
+				}else
 				{
-					
-					getMiembro(persona).setDormido(true);
-					
+					return false;
 				}
 
-			}
+		//	}
 		/*}while(true);*/
 				
 	}
 	
-	public void despertar() throws InterruptedException
+	public boolean isDormido(String nombre)
 	{
-		String queryText;
-		Random rand = new Random();
-		int index;
-		String persona;
+		String queryText = String.format("dormido(%s)", nombre);
+		q = new Query(queryText);
+		
+		if(q.hasSolution())
+		{
+			return true;
+		}
+		
+		return false;
+	}
+	
+	
+	public boolean despertar(String nombre) /*throws InterruptedException*/
+	{
+		//String queryText;
+		//Random rand = new Random();
+		//int index;
+		//String persona;
 		/*do
 		{*/
 		
-			if(!miembros.isEmpty()) {
+			/*if(!miembros.isEmpty()) {
 
 				//Thread.sleep(10000);
 				index = rand.nextInt(miembros.size());
 				
 				persona = miembros.get(index).getNombre();
 				
-				
-				queryText = String.format("despertar(%s)", persona);
+				*/
+				String queryText = String.format("despertar(%s)", nombre);
 				q = new Query(queryText);
 				
-				
+			/*	
+				*/
 				if(q.hasSolution())
+				{					
+					return true;
+				}else
 				{
-					
-					getMiembro(persona).setDormido(false);
-					
-					
+					return false;
 				}
 
-			}
+			//}
 		/*}while(true);*/
 				
+	}
+	
+	/*public boolean todosDormidos()
+	{
+		
+		String queryText = String.format("cerrar_puertas_automaticamente()");
+		q = new Query(queryText);
+		
+	/*	
+		
+		if(q.hasSolution())
+		{					
+			return true;
+		}else
+		{
+			return false;
+		}
+		
+	}
+	*/
+	public boolean salir(String nombre)
+	{
+		
+		String queryText = String.format("salir(%s)",nombre);
+		q = new Query(queryText);
+		
+
+		if(q.hasSolution())
+		{					
+			return true;
+		}else
+		{
+			return false;
+		}
+		
+	}
+	
+	public boolean volver(String nombre)
+	{
+		
+		String queryText = String.format("volver(%s)",nombre);
+		q = new Query(queryText);
+		
+	
+		if(q.hasSolution())
+		{					
+			return true;
+		}else
+		{
+			return false;
+		}
+		
+	}
+	
+	public boolean setPuertaAutomatico(String nombre)
+	{
+		String queryText = String.format("modo_automatico_puerta(%s)",nombre);
+		q = new Query(queryText);
+		
+	
+		if(q.hasSolution())
+		{		
+			q.next();
+			return true;
+		
+		}else
+		{
+			return false;
+		}
+	}
+	
+	public boolean setPuertaManual(String nombre)
+	{
+		String queryText = String.format("modo_manual_puerta(%s)",nombre);
+		q = new Query(queryText);
+		
+	
+		if(q.hasSolution())
+		{					
+			return true;
+		}else
+		{
+			return false;
+		}
+	}
+	
+	
+	public boolean isManual(String nombre)
+	{
+		String queryText = String.format("manual(%s)",nombre);
+		q = new Query(queryText);
+		
+	
+		if(q.hasSolution())
+		{				
+			
+			return true;
+		}else
+		{
+			return false;
+		}
+	}
+	
+	public boolean isAutomatico(String nombre)
+	{
+		String queryText = String.format("automatico(%s)",nombre);
+		q = new Query(queryText);
+		
+	
+		if(q.hasSolution())
+		{					
+			return true;
+		}else
+		{
+			return false;
+		}
 	}
 	
 	public int getTotalDormidos()
@@ -177,12 +332,14 @@ public class Casa {
 		return total;
 	}
 	
+	
+	
+	
 	public void addElectronico(String nombre, int consumo)
 	{
 		String queryText = String.format("nuevo_electronico(%s, %d)", nombre,consumo);
 		q = new Query(queryText);	
 		
-		q.next();
 		
 	}
 	
@@ -218,7 +375,7 @@ public class Casa {
 		
 		puertas.clear();
 		modelListPuertas.clear();
-		System.out.println(q.hasSolution());
+		
 		Map<String, Term>[] res = q.allSolutions();
 	
 		for(int i = 0; i < res.length; i++)
@@ -230,7 +387,35 @@ public class Casa {
 		
 		
 	}
+
+
+	public boolean isFuera(String miembro) {
+		String queryText = String.format("salio(%s)", miembro);
+		q = new Query(queryText);
+		
+		if(q.hasSolution())
+		{
+			return true;
+		}
+		
+		return false;
+		
+	}
 	
+	public boolean nuevoQuery(String query,String arg)
+	{
+		String queryText = String.format(query+"(%s)", arg);
+		System.out.println(queryText);
+		q = new Query(queryText);
+		System.out.println(q.hasSolution());
+		if(q.hasSolution())
+		{
+			return true;
+		}else
+		{
+			return false;
+		}
+	}
 	//public void getCerrada()
 	
 }
