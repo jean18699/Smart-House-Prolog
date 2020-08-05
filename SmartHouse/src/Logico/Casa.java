@@ -410,7 +410,7 @@ public class Casa {
 	
 		for(int i = 0; i < res.length; i++)
 		{
-			System.out.println(res[i].get("X").toString());
+			
 			puertas.add(res[i].get("X").toString());
 			modelListPuertas.add(i, res[i].get("X").toString());
 		}
@@ -447,5 +447,48 @@ public class Casa {
 		}
 	}
 	//public void getCerrada()
+
+
+	public void getZonas(DefaultListModel<String> modelListaZonas) {
+		
+		String queryText = String.format("zonaCasa(X)");
+		q = new Query(queryText);	
+		
+		modelListaZonas.clear();
+		
+		Map<String, Term>[] res = q.allSolutions();
+	
+		for(int i = 0; i < res.length; i++)
+		{
+			System.out.println(modelListaZonas);
+			modelListaZonas.add(i, res[i].get("X").toString());
+		}
+		
+	}
+
+
+	public void getMiembrosZona(DefaultListModel<String> modelListaMiembrosZona,String zona) {
+		
+		String queryText = String.format("tiene_miembro(%s,X)",zona);
+		q = new Query(queryText);	
+		
+		modelListaMiembrosZona.clear();
+		
+		Map<String, Term>[] res = q.allSolutions();
+	
+		for(int i = 0; i < res.length; i++)
+		{ 
+			System.out.println(res[i].get("X").toString());
+			modelListaMiembrosZona.add(i, res[i].get("X").toString());
+		}
+		
+	}
+
+
+	public void addMiembroZona(String miembro, String lugar) {
+		
+		String queryText = String.format("agregar_miembro_lugar(%s,%s)",miembro,lugar);
+		q = new Query(queryText);	
+	}
 	
 }

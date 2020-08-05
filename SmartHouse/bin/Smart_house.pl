@@ -89,6 +89,10 @@ get_puertas_automaticas(Puertas):-findall(Puerta,(puerta(Puerta),automatico(Puer
 
 
 
+
+
+
+
 /*======================================================================CONTROL DE LOS DISPOSITIVOS DEL HOGAR========================================================================*/
 
 % Capacidad de cambiar el modo de uso de un electronico, controlado por
@@ -209,6 +213,72 @@ cerrar_llave(Nombre):-
     llave_abierta(llave),
     retract(llave_abierta(Nombre)),assert(llave_cerrada(llave)).
 
+
+% Agregando configuracion de dispositivos que reaccionen a si hay
+% personas o no en la habitacion
+:-dynamic zonaCasa/1.
+:-dynamic tiene_electronico/2.
+:-dynamic tiene_miembro/2.
+
+nuevo_lugar(Nombre):-
+    not(zonaCasa(Nombre)),assertz(zonaCasa(Nombre)).
+
+agregar_electronico_lugar(Electro,Lugar):-
+    electronico(Electro),zonaCasa(Lugar),
+    not(tiene_electronico(_,Electro)),
+    assertz(tiene_electronico(Lugar,Electro)).
+
+quitar_electronico_lugar(Electro,Lugar):-
+    electronico(Electro),zonaCasa(Lugar),
+    tiene_electronico(Lugar,Electro),
+    retract(tiene_electronico(Lugar,Electro)).
+
+get_electronicos_lugar(Lugar,Electronicos):-findall(Electro,tiene_electronico(Lugar,Electro),Electronicos).
+
+tiene_electronicos(Lugar):-
+    get_electronicos_lugar(Lugar,Electronicos),
+    length(Electronicos,T), T > 0.
+
+
+agregar_miembro_lugar(Miembro, Lugar):-
+    miembro(Miembro), zonaCasa(Lugar),
+    not(tiene_miembro(_, Miembro)),
+    assertz(tiene_miembro(Lugar, Miembro)).
+
+quitar_miembro_lugar(Miembro, Lugar):-
+    miembro(Miembro), zonaCasa(Lugar),
+    tiene_miembro(Lugar, Miembro),
+    retract(tiene_miembro(Lugar, Miembro)).
+
+get_miembros_lugar(Lugar, Miembros):-
+    findall(Miembro, tiene_miembro(Lugar, Miembro), Miembros).
+
+tiene_miembros(Lugar):-
+    get_miembros_lugar(Lugar, Miembros),
+    length(Miembros, T), T > 0.
+
+
+apagar_dispositivos([]):-!.
+apagar_dispositivos([H|_]):-not(apagado(H)),automatico(H),apagar(H).
+apagar_dispositivos([_|L]):-apagar_dispositivos(L).
+
+% para fines de simulacion: revisar todos los lugares y si tienen
+% miembros. Si no los tienen, apaga todos los dispositivos que esten
+% asociados a esa zona si son automaticos
+
+alerta_nadie_lugar(Lugar):-
+    not(tiene_miembros(Lugar)),tiene_electronicos(Lugar),
+    get_electronicos_lugar(Lugar,Electronicos),apagar_dispositivos(Electronicos).
+
+get_all_lugares(Lugares):-findall(Lugar,zonaCasa(Lugar),Lugares).
+
+check_all_lugares([]):-!.
+check_all_lugares([H|L]):-alerta_nadie_lugar(H),check_all_lugares(L).
+check_all_lugares([_|L]):-check_all_lugares(L).
+
+
+alerta_nadie_todos_lugares():-
+     get_all_lugares(Lugares),check_all_lugares(Lugares),!.
 
 
 
