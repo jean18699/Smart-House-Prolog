@@ -161,7 +161,7 @@ public class Principal extends JFrame {
 		listZonas.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseClicked(MouseEvent arg0) {
-				if(arg0.getClickCount() == 2)
+				if(arg0.getClickCount() == 1)
 				{
 					int index = listZonas.locationToIndex(arg0.getPoint());
 					zona = (String) listZonas.getModel().getElementAt(index);
@@ -169,6 +169,7 @@ public class Principal extends JFrame {
 					if(zona!=null)
 					{
 						casa.getMiembrosZona(modelListaMiembrosZona,zona);
+						casa.getElectronicosZona(modelListaElectronicosZona,zona);
 						
 					}
 				}
@@ -195,7 +196,7 @@ public class Principal extends JFrame {
 		listMiembros.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseClicked(MouseEvent arg0) {
-				if(arg0.getClickCount() == 2)
+				if(arg0.getClickCount() == 1)
 				{
 					
 					int index = listMiembros.locationToIndex(arg0.getPoint());
@@ -336,7 +337,7 @@ public class Principal extends JFrame {
 		listPuertas.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseClicked(MouseEvent arg0) {
-				if(arg0.getClickCount() == 2)
+				if(arg0.getClickCount() == 1)
 				{
 					int index = listPuertas.locationToIndex(arg0.getPoint());
 					puerta = listPuertas.getModel().getElementAt(index);
@@ -599,7 +600,7 @@ public class Principal extends JFrame {
         listElectronicos.addMouseListener(new MouseAdapter() {
         	@Override
         	public void mouseClicked(MouseEvent arg0) {
-        		if(arg0.getClickCount() == 2)
+        		if(arg0.getClickCount() == 1)
 				{
 					int index = listElectronicos.locationToIndex(arg0.getPoint());
 					electronico = (String) listElectronicos.getModel().getElementAt(index);
@@ -722,6 +723,14 @@ public class Principal extends JFrame {
         				panel_2.add(lblNewLabel);
         				
         				JButton btnNewButton = new JButton("Configurar para una zona especifica");
+        				btnNewButton.addActionListener(new ActionListener() {
+        					public void actionPerformed(ActionEvent arg0) {
+        						AgregarElectronicoZona addElectronicoZona = new AgregarElectronicoZona(electronico,casa);
+                				addElectronicoZona.setLocationRelativeTo(null);
+                				addElectronicoZona.setModal(true);
+                				addElectronicoZona.setVisible(true);
+        					}
+        				});
         				btnNewButton.setBounds(10, 467, 337, 23);
         				panel_2.add(btnNewButton);
         				
@@ -729,15 +738,25 @@ public class Principal extends JFrame {
         				btnEntrarZona.setEnabled(false);
         				btnEntrarZona.addActionListener(new ActionListener() {
         					public void actionPerformed(ActionEvent arg0) {
-        						AgregarMiembroZona addZona = new AgregarMiembroZona(miembro,casa);
-                				addZona.setLocationRelativeTo(null);
-                				addZona.setModal(true);
-                				addZona.setVisible(true);
+        						AgregarMiembroZona addMiembroZona = new AgregarMiembroZona(miembro,casa);
+                				addMiembroZona.setLocationRelativeTo(null);
+                				addMiembroZona.setModal(true);
+                				addMiembroZona.setVisible(true);
                 				
         					}
         				});
         				btnEntrarZona.setBounds(158, 98, 177, 23);
         				panel_2.add(btnEntrarZona);
+        				
+        				JButton btnQuitarPuerta = new JButton("X");
+        				btnQuitarPuerta.setEnabled(false);
+        				btnQuitarPuerta.setBounds(107, 298, 38, 23);
+        				panel_2.add(btnQuitarPuerta);
+        				
+        				JButton button_1 = new JButton("X");
+        				button_1.setEnabled(false);
+        				button_1.setBounds(109, 433, 38, 23);
+        				panel_2.add(button_1);
         				
         				JLabel lblNewLabel_2 = new JLabel("Zonas de la casa");
         				lblNewLabel_2.setBounds(404, 34, 89, 14);
@@ -751,7 +770,7 @@ public class Principal extends JFrame {
         				listMiembrosZona.addMouseListener(new MouseAdapter() {
         					@Override
         					public void mouseClicked(MouseEvent e) {
-        						if(e.getClickCount() == 2)
+        						if(e.getClickCount() == 1)
                 				{
                 					int index = listMiembrosZona.locationToIndex(e.getPoint());
                 					miembroZona = (String) listMiembrosZona.getModel().getElementAt(index);
@@ -780,7 +799,7 @@ public class Principal extends JFrame {
         				listElectronicosZona.addMouseListener(new MouseAdapter() {
         					@Override
         					public void mouseClicked(MouseEvent e) {
-        						if(e.getClickCount() == 2)
+        						if(e.getClickCount() == 1)
                 				{
                 					int index = listElectronicosZona.locationToIndex(e.getPoint());
                 					electronicoZona = (String) listElectronicosZona.getModel().getElementAt(index);
@@ -799,6 +818,21 @@ public class Principal extends JFrame {
         				JLabel lblNewLabel_3_1 = new JLabel("Electronicos controlados");
         				lblNewLabel_3_1.setBounds(694, 34, 183, 14);
         				MainPanel.add(lblNewLabel_3_1);
+        				
+        				JButton btnSalirDeLa = new JButton("Salir de la zona");
+        				btnSalirDeLa.setEnabled(false);
+        				btnSalirDeLa.setBounds(549, 142, 135, 23);
+        				MainPanel.add(btnSalirDeLa);
+        				
+        				JButton btnQuitar = new JButton("Quitar");
+        				btnQuitar.setEnabled(false);
+        				btnQuitar.setBounds(694, 142, 135, 23);
+        				MainPanel.add(btnQuitar);
+        				
+        				JButton button_2 = new JButton("X");
+        				button_2.setEnabled(false);
+        				button_2.setBounds(501, 142, 38, 23);
+        				MainPanel.add(button_2);
         btnAgregarElectronico.addActionListener(new ActionListener() {
         	public void actionPerformed(ActionEvent arg0) {
         		AgregarElectronico addElectronico = new AgregarElectronico(casa);

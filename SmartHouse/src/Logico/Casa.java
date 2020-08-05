@@ -485,10 +485,52 @@ public class Casa {
 	}
 
 
-	public void addMiembroZona(String miembro, String lugar) {
+	public boolean addMiembroZona(String miembro, String lugar) {
 		
 		String queryText = String.format("agregar_miembro_lugar(%s,%s)",miembro,lugar);
 		q = new Query(queryText);	
+		
+		if(q.hasSolution())
+		{
+			return true;
+		}else
+		{
+			return false;
+		}
+		
+	}
+
+
+	public boolean addElectronicoZona(String electronico, String lugar) {
+		String queryText = String.format("agregar_electronico_lugar(%s,%s)",electronico,lugar);
+		q = new Query(queryText);	
+		
+		if(q.hasSolution())
+		{
+			return true;
+		}else
+		{
+			return false;
+		}
+		
+	}
+
+
+	public void getElectronicosZona(DefaultListModel<String> modelListaElectronicosZona, String zona) {
+		
+		String queryText = String.format("tiene_electronico(%s,X)",zona);
+		q = new Query(queryText);	
+		
+		modelListaElectronicosZona.clear();
+		
+		Map<String, Term>[] res = q.allSolutions();
+	
+		for(int i = 0; i < res.length; i++)
+		{ 
+			System.out.println(res[i].get("X").toString());
+			modelListaElectronicosZona.add(i, res[i].get("X").toString());
+		}
+		
 	}
 	
 }
