@@ -61,6 +61,8 @@ public class Principal extends JFrame {
 	JButton btnModoManualElectronicos;
 	JButton btnModoAutomaticoElectronicos; 
 	JButton btnQuitarMiembro;
+	JLabel txtConsumo;
+	JLabel txtConsumoTotal;
 	
 	/**
 	 * Launch the application.
@@ -442,19 +444,7 @@ public class Principal extends JFrame {
 		btnAgregarPuerta.setBounds(10, 297, 89, 23);
 		MainPanel.add(btnAgregarPuerta);
 		
-		DefaultListCellRenderer renderer = (DefaultListCellRenderer)listMiembros.getCellRenderer();
-		renderer.setHorizontalAlignment(JLabel.CENTER);
-		
-		DefaultListCellRenderer renderer2 = (DefaultListCellRenderer)listPuertas.getCellRenderer();
-		renderer2.setHorizontalAlignment(JLabel.CENTER);
-		
-		/*ButtonGroup bgroup1 = new ButtonGroup();
-        bgroup1.add(radEstadoSalir);
-        bgroup1.add(radFamiliarDurmiendo);
-        */
-        ButtonGroup bgroupPuertas = new ButtonGroup();
-        bgroupPuertas.add(radPuertasAbiertas);
-        bgroupPuertas.add(radPuertasCerradas);
+	
         
         btnQuitarMiembro = new JButton("X");
         btnQuitarMiembro.setEnabled(false);
@@ -492,14 +482,47 @@ public class Principal extends JFrame {
         MainPanel.add(panel_1_1);
         
         JRadioButton radElectroEncendido = new JRadioButton("Encendido");
+        radElectroEncendido.addActionListener(new ActionListener() {
+        	public void actionPerformed(ActionEvent e) {
+        		casa.nuevoQuery("encender",electronico);
+        		txtConsumoTotal.setText(String.valueOf(casa.getConsumoElectronicoTotal()));
+        	}
+        });
         radElectroEncendido.setEnabled(false);
         
         JRadioButton radElectroApagado = new JRadioButton("Apagado");
+        radElectroApagado.addActionListener(new ActionListener() {
+        	public void actionPerformed(ActionEvent e) {
+        		casa.nuevoQuery("apagar",electronico);
+        		txtConsumoTotal.setText(String.valueOf(casa.getConsumoElectronicoTotal()));
+        	}
+        });
         radElectroApagado.setEnabled(false);
         
         btnModoManualElectronicos = new JButton("Manual");
+        btnModoManualElectronicos.addActionListener(new ActionListener() {
+        	public void actionPerformed(ActionEvent arg0) {
+        		casa.nuevoQuery("modo_manual", electronico);
+				//casa.setPuertaManual(puerta);
+				btnModoAutomaticoElectronicos.setEnabled(!casa.isAutomatico(electronico));
+				btnModoManualElectronicos.setEnabled(!casa.isManual(electronico));
+				radElectroEncendido.setEnabled(true);
+				radElectroApagado.setEnabled(true);
+        	}
+        });
         
         btnModoAutomaticoElectronicos = new JButton("Automatico");
+        btnModoAutomaticoElectronicos.addActionListener(new ActionListener() {
+        	public void actionPerformed(ActionEvent e) {
+        		casa.nuevoQuery("modo_automatico", electronico);
+			//	casa.nuevoQuery("alerta_puertas", "");
+				//casa.setPuertaAutomatico(puerta);
+				btnModoAutomaticoElectronicos.setEnabled(!casa.nuevoQuery("automatico", electronico));
+				btnModoManualElectronicos.setEnabled(!casa.nuevoQuery("manual", electronico));
+				radElectroEncendido.setEnabled(false);
+				radElectroApagado.setEnabled(false);
+        	}
+        });
         GroupLayout gl_panel_1_1 = new GroupLayout(panel_1_1);
         gl_panel_1_1.setHorizontalGroup(
         	gl_panel_1_1.createParallelGroup(Alignment.LEADING)
@@ -531,34 +554,56 @@ public class Principal extends JFrame {
         );
         panel_1_1.setLayout(gl_panel_1_1);
         
+        JButton btnAgregarElectronico = new JButton("Agregar");
+        btnAgregarElectronico.addActionListener(new ActionListener() {
+        	public void actionPerformed(ActionEvent arg0) {
+        		AgregarElectronico addElectronico = new AgregarElectronico(casa);
+        		addElectronico.setLocationRelativeTo(null);
+        		addElectronico.setModal(true);
+        		addElectronico.setVisible(true);
+				casa.getElectronicos(modelListaElectronicos);
+				txtConsumoTotal.setText(String.valueOf(casa.getConsumoElectronicoTotal()));
+				
+
+        	}
+        });
+        btnAgregarElectronico.setBounds(10, 435, 89, 23);
+        MainPanel.add(btnAgregarElectronico);
+        
+        JScrollPane scrollPane_1_1 = new JScrollPane();
+        scrollPane_1_1.setBounds(10, 343, 135, 81);
+        MainPanel.add(scrollPane_1_1);
+        
         JList listElectronicos = new JList();
+        scrollPane_1_1.setViewportView(listElectronicos);
         listElectronicos.addMouseListener(new MouseAdapter() {
         	@Override
         	public void mouseClicked(MouseEvent arg0) {
         		if(arg0.getClickCount() == 2)
 				{
-					int index = listPuertas.locationToIndex(arg0.getPoint());
-					electronico = listPuertas.getModel().getElementAt(index);
+					int index = listElectronicos.locationToIndex(arg0.getPoint());
+					electronico = (String) listElectronicos.getModel().getElementAt(index);
 					
-					if(puerta!=null)
+					if(electronico!=null)
 					{
 						//radPuertasAbiertas.setEnabled(true);
 						//radPuertasCerradas.setEnabled(true);
+						txtConsumo.setText(String.valueOf(casa.getConsumoElectronico(electronico)));
 						
-						btnModoAutomaticoPuertas.setEnabled(!casa.nuevoQuery("automatico", puerta));
-						btnModoManualPuertas.setEnabled(!casa.nuevoQuery("manual", puerta));
+						btnModoAutomaticoElectronicos.setEnabled(!casa.nuevoQuery("automatico", electronico));
+						btnModoManualElectronicos.setEnabled(!casa.nuevoQuery("manual", electronico));
 						
-						radPuertasAbiertas.setSelected(casa.nuevoQuery("puerta_abierta", puerta));
-						radPuertasCerradas.setSelected(casa.nuevoQuery("puerta_cerrada", puerta));
+						radElectroEncendido.setSelected(casa.nuevoQuery("encendido", electronico));
+						radElectroApagado.setSelected(casa.nuevoQuery("apagado", electronico));
 						
-						if(!btnModoAutomaticoPuertas.isEnabled())
+						if(!btnModoAutomaticoElectronicos.isEnabled())
 						{
-							radPuertasAbiertas.setEnabled(false);
-							radPuertasCerradas.setEnabled(false);
-						}else if(!btnModoManualPuertas.isEnabled())
+							radElectroEncendido.setEnabled(false);
+							radElectroApagado.setEnabled(false);
+						}else if(!btnModoManualElectronicos.isEnabled())
 						{
-							radPuertasAbiertas.setEnabled(true);
-							radPuertasCerradas.setEnabled(true);
+							radElectroEncendido.setEnabled(true);
+							radElectroApagado.setEnabled(true);
 						}
 						
 						
@@ -582,23 +627,45 @@ public class Principal extends JFrame {
         });
         listElectronicos.setVisibleRowCount(2);
         listElectronicos.setSelectionMode(ListSelectionModel.SINGLE_INTERVAL_SELECTION);
-        listElectronicos.setBounds(11, 346, 133, 79);
-        MainPanel.add(listElectronicos);
         listElectronicos.setModel(modelListaElectronicos);
         
-        JButton btnAgregarElectronico = new JButton("Agregar");
-        btnAgregarElectronico.addActionListener(new ActionListener() {
-        	public void actionPerformed(ActionEvent arg0) {
-        		AgregarElectronico addElectronico = new AgregarElectronico(casa);
-        		addElectronico.setLocationRelativeTo(null);
-        		addElectronico.setModal(true);
-        		addElectronico.setVisible(true);
-				casa.getElectronicos(modelListaElectronicos);
-
-        	}
-        });
-        btnAgregarElectronico.setBounds(10, 432, 89, 23);
-        MainPanel.add(btnAgregarElectronico);
+        JLabel lblConsumo = new JLabel("Consumo:");
+        lblConsumo.setBounds(155, 425, 62, 14);
+        MainPanel.add(lblConsumo);
+        
+        txtConsumo = new JLabel("consumido");
+        txtConsumo.setBounds(207, 425, 62, 14);
+        MainPanel.add(txtConsumo);
+        
+        JLabel lblTotalConsumido = new JLabel("Total consumido:");
+        lblTotalConsumido.setBounds(155, 441, 81, 14);
+        MainPanel.add(lblTotalConsumido);
+        
+        txtConsumoTotal = new JLabel("total");
+        txtConsumoTotal.setBounds(242, 441, 46, 14);
+        MainPanel.add(txtConsumoTotal);
+        
+    	DefaultListCellRenderer renderer = (DefaultListCellRenderer)listMiembros.getCellRenderer();
+		renderer.setHorizontalAlignment(JLabel.CENTER);
+		
+		DefaultListCellRenderer renderer2 = (DefaultListCellRenderer)listPuertas.getCellRenderer();
+		renderer2.setHorizontalAlignment(JLabel.CENTER);
+		
+		DefaultListCellRenderer renderer3 = (DefaultListCellRenderer)listElectronicos.getCellRenderer();
+		renderer3.setHorizontalAlignment(JLabel.CENTER);
+		
+		/*ButtonGroup bgroup1 = new ButtonGroup();
+        bgroup1.add(radEstadoSalir);
+        bgroup1.add(radFamiliarDurmiendo);
+        */
+        ButtonGroup bgroupPuertas = new ButtonGroup();
+        bgroupPuertas.add(radPuertasAbiertas);
+        bgroupPuertas.add(radPuertasCerradas);
+        
+        ButtonGroup bgroupElectronicos = new ButtonGroup();
+        bgroupPuertas.add(radElectroEncendido);
+        bgroupPuertas.add(radElectroApagado);
+        
 		
 	}
 }

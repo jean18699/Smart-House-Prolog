@@ -335,11 +335,17 @@ public class Casa {
 	
 	
 	
-	public void addElectronico(String nombre, int consumo)
+	public boolean addElectronico(String nombre, int consumo)
 	{
 		String queryText = String.format("nuevo_electronico(%s, %d)", nombre,consumo);
 		q = new Query(queryText);	
-		
+		if(q.hasSolution())
+		{
+			return true;
+		}else
+		{
+			return false;
+		}
 		
 	}
 	
@@ -359,6 +365,30 @@ public class Casa {
 		
 		
 	}
+	
+	public int getConsumoElectronico(String nombre)
+	{
+		String queryText = String.format("consumo(%s,X)",nombre);
+		q = new Query(queryText);	
+		
+		Map<String, Term> res = q.getSolution();
+		
+		return res.get("X").intValue();
+		
+	}
+	
+	public int getConsumoElectronicoTotal()
+	{
+		String queryText = String.format("get_total_consumo(Total)");
+		q = new Query(queryText);	
+		
+		Map<String, Term> res = q.getSolution();
+		
+		return res.get("Total").intValue();
+
+	}
+	
+	
 	
 	public void addPuerta(String nombre)
 	{

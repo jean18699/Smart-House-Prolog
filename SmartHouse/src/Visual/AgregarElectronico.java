@@ -16,6 +16,7 @@ import javax.swing.SwingConstants;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
 import javax.swing.JSpinner;
+import javax.swing.SpinnerNumberModel;
 
 public class AgregarElectronico extends JDialog {
 
@@ -50,7 +51,8 @@ public class AgregarElectronico extends JDialog {
 		}
 		{
 			spnConsumo = new JSpinner();
-			spnConsumo.setBounds(135, 35, 174, 20);
+			spnConsumo.setModel(new SpinnerNumberModel(new Integer(1), new Integer(1), null, new Integer(1)));
+			spnConsumo.setBounds(135, 35, 78, 20);
 			contentPanel.add(spnConsumo);
 		}
 		{
@@ -62,6 +64,7 @@ public class AgregarElectronico extends JDialog {
 				okButton.addActionListener(new ActionListener() {
 					public void actionPerformed(ActionEvent arg0) {
 						//casa.addElectronico(txtNombre.getText(), );
+						System.out.println((int) spnConsumo.getValue());
 						casa.addElectronico(txtNombre.getText(),(int) spnConsumo.getValue());
 						//casa.addPuerta(txtNombre.getText());
 						dispose();
