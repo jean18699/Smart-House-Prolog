@@ -20,7 +20,7 @@ public class AgregarElectronicoZona extends JDialog {
 
 	private final JPanel contentPanel = new JPanel();
 	private JTextField txtNombre;
-	private Casa casa;
+	private Casa casa; 
 
 	public AgregarElectronicoZona(String miembro, Casa casa) {
 		setBounds(100, 100, 335, 119);
