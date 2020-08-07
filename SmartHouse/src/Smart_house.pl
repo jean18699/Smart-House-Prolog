@@ -29,7 +29,8 @@ quitar_miembro(Persona):-
     (salio(Persona), retract(salio(Persona))).
 
 quitar_miembro(Persona):-
-    miembro(Persona),retract(miembro(Persona)).
+    miembro(Persona),retract(miembro(Persona)),
+    retractall(tiene_miembro(_,Persona)).
 
 
 %listar miembros de la familia.
@@ -143,6 +144,13 @@ cerrar_puertas_automaticas([_|L]):-cerrar_puertas_automaticas(L).
 
 
 
+
+
+
+
+
+
+
 /*=============================================================MODULO DE RECURSOS================================================================================================*/
 
 :-dynamic electronico/1. %electronico(nombreElectronico).
@@ -169,7 +177,8 @@ quitar_electronico(Electronico):-
     (manual(Electronico), retract(manual(Electronico)));
     (automatico(Electronico), retract(automatico(Electronico))),
     (encendido(Electronico), retract(encendido(Electronico)));
-    (apagado(Electronico), retract(apagado(Electronico))).
+    (apagado(Electronico), retract(apagado(Electronico))),
+    retractall(tiene_electronico(_,Electronico)).
 
 encender(Electronico):-
     electronico(Electronico),
@@ -222,6 +231,13 @@ cerrar_llave(Nombre):-
 
 nuevo_lugar(Nombre):-
     not(zonaCasa(Nombre)),assertz(zonaCasa(Nombre)).
+
+
+quitar_lugar(Nombre):-
+    zonaCasa(Nombre),retract(zonaCasa(Nombre)),
+    (tiene_miembro(Nombre,_), retractall(tiene_miembro(Nombre,_)));
+    (tiene_electronico(Nombre,_),retractall(tiene_electronico(Nombre,_))).
+
 
 agregar_electronico_lugar(Electro,Lugar):-
     electronico(Electro),zonaCasa(Lugar),
@@ -276,11 +292,93 @@ check_all_lugares([]):-!.
 check_all_lugares([H|L]):-alerta_nadie_lugar(H),check_all_lugares(L).
 check_all_lugares([_|L]):-check_all_lugares(L).
 
+apagar_electronicos_automaticos([]):-!.
+apagar_electronicos_automaticos([H|L]):- automatico(H),apagar(H),apagar_electronicos_automaticos(L).
+apagar_electronicos_automaticos([_|L]):-apagar_electronicos_automaticos(L).
 
+
+% regla por si se quieren revisar todos los lugares a la vez y si estan
+% vacios
 alerta_nadie_todos_lugares():-
      get_all_lugares(Lugares),check_all_lugares(Lugares),!.
 
 
+% Apagar electronicos en el caso de que todos hayan salido o esten
+% durmiendo. Ademas, solo se apagan los electronicos automaticos
+alerta_electronicos():- not(modo_visita),(get_miembros(Miembros), todos_dormidos(Miembros)),!,
+    findall(Electro,electronico(Electro),Electronicos),apagar_electronicos_automaticos(Electronicos).
+
+alerta_electronicos():-not(modo_visita), get_miembros(Miembros), todos_salieron(Miembros),!,
+     findall(Electro,electronico(Electro),Electronicos),apagar_electronicos_automaticos(Electronicos).
+
+
+% Conocer el momento en el que se encuentra el dia. Asi se podra tambien
+% controlar los dispositivos:
+:-dynamic horaDia/1.
+:-dynamic horaDiaActual/1.
+:-dynamic temporizado/2. %hecho que recibe un electronico y un numero que indica la hora a la que quieres que se apague
+
+cambiar_hora(Hora):-integer(Hora),
+    (horaDiaActual(_), retract(horaDiaActual(_)),assertz(horaDiaActual(Hora)),check_electronicos_temporizados(),!);
+    assertz(horaDiaActual(Hora)),check_electronicos_temporizados().
+
+verificar_momento_dia(Momento):- var(Momento), horaDiaActual(Hora),
+    Hora < 24,
+    ((Hora >= 6 , Hora < 12),Momento = 'mañana',!).
+
+verificar_momento_dia(Momento):- var(Momento), horaDiaActual(Hora),
+    Hora < 24,
+    ((Hora >= 12 , Hora =< 18),Momento = 'tarde',!).
+
+verificar_momento_dia(Momento):- var(Momento), horaDiaActual(Hora),
+    Hora < 24, (Momento = 'noche',!).
+
+
+sugerencia_puertas(Mensaje):- var(Mensaje),
+     verificar_momento_dia(Momento),
+    (Momento = 'mañana', Mensaje = 'Buen momento para abrir las puertas',!).
+
+sugerencia_puertas(Mensaje):- var(Mensaje),
+     verificar_momento_dia(Momento),
+    (Momento = 'tarde', Mensaje = 'No se recomienda nada en particular',!).
+
+sugerencia_puertas(Mensaje):- var(Mensaje),
+    verificar_momento_dia(Momento),
+    (Momento = 'noche', Mensaje = 'Recuerde cerrar las puertas',!).
+
+
+% regla para apagar un dispositivo electronico luego de un lapso de
+% tiempo
+
+programar_apagado(Electronico,Tiempo):-electronico(Electronico),integer(Tiempo), not(apagado(Electronico)),
+    (temporizado(Electronico,_), retract(temporizado(Electronico,_)), assertz(temporizado(Electronico,Tiempo)));
+    assertz(temporizado(Electronico,Tiempo)).
+
+apagar_temporizados([]):-!.
+apagar_temporizados([H|L]):-temporizado(H,Tiempo), horaDiaActual(Hora), (Hora >= Tiempo),apagar(H),retract(temporizado(H,Tiempo)),apagar_temporizados(L).
+apagar_temporizados([_|L]):-apagar_temporizados(L).
+
+
+check_electronicos_temporizados():-findall(Elec, electronico(Elec), Electronicos),apagar_temporizados(Electronicos),!.
+
+
+%control ambiental
+:-dynamic temperaturaHogar/1.
+
+%Segun lo investigado: La temperatura de confort se sitúa entre los
+% 18°C y los 21°C para una persona en reposo y entre los 16°C y los 18°C
+% para una persona activa.
+
+nueva_temperatura(Temp):-integer(Temp),
+    (temperaturaHogar(_), retract(temperaturaHogar(_)),assertz(temperaturaHogar(Temp)),!);
+    assertz(temperaturaHogar(Temp)).
+
+
+%Si todas las personas duermen, se regula la temperatura a 20 grados
+regular_temperatura():-
+    get_miembros(Miembros), todos_dormidos(Miembros),
+    nueva_temperatura(20),!.
+ 
 
 
 

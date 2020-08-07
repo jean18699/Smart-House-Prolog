@@ -46,7 +46,7 @@ public class AgregarMiembroZona extends JDialog {
 				JButton okButton = new JButton("OK");
 				okButton.addActionListener(new ActionListener() {
 					public void actionPerformed(ActionEvent arg0) {
-						casa.addMiembroZona(miembro,txtNombre.getText());
+						casa.addMiembroZona(miembro, txtNombre.getText());
 						dispose();
 					}
 				});

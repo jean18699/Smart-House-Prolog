@@ -38,6 +38,13 @@ import javax.swing.GroupLayout;
 import javax.swing.GroupLayout.Alignment;
 import javax.swing.LayoutStyle.ComponentPlacement;
 import javax.swing.JCheckBox;
+import javax.swing.JSpinner;
+import javax.swing.border.SoftBevelBorder;
+import javax.swing.border.BevelBorder;
+import javax.swing.SpinnerNumberModel;
+import javax.swing.event.ChangeListener;
+import javax.swing.event.ChangeEvent;
+import javax.swing.border.EtchedBorder;
 
 
 public class Principal extends JFrame {
@@ -55,6 +62,7 @@ public class Principal extends JFrame {
 	private String zona;
 	private String miembroZona;
 	private String electronicoZona;
+	String horaDiaActual;
 	JRadioButton radFamiliarDurmiendo;
 	JLabel txtTotalDormidos;
 	Thread th_dormirPersonas;
@@ -70,6 +78,14 @@ public class Principal extends JFrame {
 	JButton btnEntrarZona;
 	JLabel txtConsumo;
 	JLabel txtConsumoTotal;
+	JSpinner spnHoraDia;
+	JLabel txtSugerenciaPuerta; 
+	JButton btnProgramarElectro;
+	JSpinner spnApagadoElectro;
+	JSpinner spnTemperatura;
+	JLabel txtLitros;
+	JLabel txtTotalCostoAgua;
+	JLabel txtTotalGalones;
 	
 	
 	/**
@@ -128,7 +144,7 @@ public class Principal extends JFrame {
 	
 	
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		setBounds(100, 100, 893, 570);
+		setBounds(100, 100, 893, 661);
 		MainPanel = new JPanel();
 		MainPanel.setBorder(new EmptyBorder(5, 5, 5, 5));
 		setContentPane(MainPanel);
@@ -249,6 +265,12 @@ public class Principal extends JFrame {
 					{
 						casa.dormir(miembro);
 						casa.nuevoQuery("alerta_puertas", "");
+						casa.nuevoQuery("alerta_electronicos", "");
+						casa.nuevoQuery("regular_temperatura", "");
+						
+						spnTemperatura.setValue(casa.getTemperatura());
+						txtConsumoTotal.setText(String.valueOf(casa.getConsumoElectronicoTotal()));
+						
 					}else
 					{
 						casa.despertar(miembro);
@@ -291,6 +313,9 @@ public class Principal extends JFrame {
 					{
 						casa.salir(miembro);
 						casa.nuevoQuery("alerta_puertas", "");
+						casa.nuevoQuery("alerta_electronicos", "");
+						txtConsumoTotal.setText(String.valueOf(casa.getConsumoElectronicoTotal()));
+						
 					}else
 					{
 						casa.volver(miembro);
@@ -484,7 +509,6 @@ public class Principal extends JFrame {
 	
         
         btnQuitarMiembro = new JButton("X");
-        btnQuitarMiembro.setEnabled(false);
         btnQuitarMiembro.addActionListener(new ActionListener() {
         	public void actionPerformed(ActionEvent e) {
         		if(miembro!=null)
@@ -497,21 +521,6 @@ public class Principal extends JFrame {
         });
         btnQuitarMiembro.setBounds(109, 142, 38, 23);
         MainPanel.add(btnQuitarMiembro);
-        
-        JCheckBox chkVisitas = new JCheckBox("Modo visitantes");
-        chkVisitas.addActionListener(new ActionListener() {
-        	public void actionPerformed(ActionEvent e) {
-        		if(chkVisitas.isSelected())
-        		{
-        			casa.nuevoQuery("visitantes", "on");
-        		}else
-        		{
-        			casa.nuevoQuery("visitantes", "off");
-        		}
-        	}
-        });
-        chkVisitas.setBounds(6, 501, 114, 23);
-        MainPanel.add(chkVisitas);
         
         JPanel panel_1_1 = new JPanel();
         panel_1_1.setBorder(new TitledBorder(null, "Estado", TitledBorder.LEADING, TitledBorder.TOP, null, null));
@@ -704,23 +713,23 @@ public class Principal extends JFrame {
         		btnAgregarZona.setBounds(404, 142, 89, 23);
         		MainPanel.add(btnAgregarZona);
         		
-        		JPanel panel_2 = new JPanel();
-        		panel_2.setBorder(null);
-        		panel_2.setBounds(0, 0, 357, 541);
-        		MainPanel.add(panel_2);
-        		panel_2.setLayout(null);
+        		JPanel lblHoraDia = new JPanel();
+        		lblHoraDia.setBorder(new SoftBevelBorder(BevelBorder.RAISED, null, null, null, null));
+        		lblHoraDia.setBounds(0, 0, 366, 630);
+        		MainPanel.add(lblHoraDia);
+        		lblHoraDia.setLayout(null);
         		
         		JButton btnAgregarElectronico = new JButton("Agregar");
         		btnAgregarElectronico.setBounds(10, 433, 89, 23);
-        		panel_2.add(btnAgregarElectronico);
+        		lblHoraDia.add(btnAgregarElectronico);
         		
-        				JLabel lblPuertas = new JLabel("Puertas del hogar");
-        				lblPuertas.setBounds(10, 194, 135, 14);
-        				panel_2.add(lblPuertas);
+        				JLabel lblPuertas = new JLabel("Puertas y ventanas del hogar");
+        				lblPuertas.setBounds(10, 194, 147, 14);
+        				lblHoraDia.add(lblPuertas);
         				
         				JLabel lblNewLabel = new JLabel("Miembros de la familia");
         				lblNewLabel.setBounds(10, 36, 135, 14);
-        				panel_2.add(lblNewLabel);
+        				lblHoraDia.add(lblNewLabel);
         				
         				JButton btnNewButton = new JButton("Configurar para una zona especifica");
         				btnNewButton.addActionListener(new ActionListener() {
@@ -732,7 +741,7 @@ public class Principal extends JFrame {
         					}
         				});
         				btnNewButton.setBounds(10, 467, 337, 23);
-        				panel_2.add(btnNewButton);
+        				lblHoraDia.add(btnNewButton);
         				
         				btnEntrarZona = new JButton("Entrar en zona de la casa");
         				btnEntrarZona.setEnabled(false);
@@ -746,17 +755,95 @@ public class Principal extends JFrame {
         					}
         				});
         				btnEntrarZona.setBounds(158, 98, 177, 23);
-        				panel_2.add(btnEntrarZona);
+        				lblHoraDia.add(btnEntrarZona);
         				
         				JButton btnQuitarPuerta = new JButton("X");
-        				btnQuitarPuerta.setEnabled(false);
+        				btnQuitarPuerta.addActionListener(new ActionListener() {
+        					public void actionPerformed(ActionEvent arg0) {
+        						casa.nuevoQuery("quitar_puerta", puerta);
+        						casa.getPuertas(modelListaPuertas);
+        					}
+        				});
         				btnQuitarPuerta.setBounds(107, 298, 38, 23);
-        				panel_2.add(btnQuitarPuerta);
+        				lblHoraDia.add(btnQuitarPuerta);
         				
         				JButton button_1 = new JButton("X");
-        				button_1.setEnabled(false);
+        				button_1.addActionListener(new ActionListener() {
+        					public void actionPerformed(ActionEvent e) {
+        						casa.nuevoQuery("quitar_electronico", electronico);
+        						casa.getElectronicos(modelListaElectronicos);
+        						casa.getElectronicosZona(modelListaElectronicosZona, electronicoZona);
+        					}
+        				});
         				button_1.setBounds(109, 433, 38, 23);
-        				panel_2.add(button_1);
+        				lblHoraDia.add(button_1);
+        				
+        				JPanel panel_2 = new JPanel();
+        				panel_2.setBorder(new SoftBevelBorder(BevelBorder.RAISED, null, null, null, null));
+        				panel_2.setBounds(0, 579, 366, 61);
+        				lblHoraDia.add(panel_2);
+        				panel_2.setLayout(null);
+        				
+        				JCheckBox chkVisitas = new JCheckBox("Modo visitantes");
+        				chkVisitas.setBounds(6, 7, 114, 23);
+        				panel_2.add(chkVisitas);
+        				
+        				spnHoraDia = new JSpinner();
+        				spnHoraDia.setModel(new SpinnerNumberModel(0, 0, 23, 1));
+        				spnHoraDia.setBounds(120, 28, 59, 20);
+        				panel_2.add(spnHoraDia);
+        				
+        				JLabel lblNewLabel_4 = new JLabel("Indicar la hora del dia:");
+        				lblNewLabel_4.setBounds(10, 31, 112, 14);
+        				panel_2.add(lblNewLabel_4);
+        				
+        				JButton btnAceptarHora = new JButton("Aceptar");
+        				btnAceptarHora.addActionListener(new ActionListener() {
+        					public void actionPerformed(ActionEvent e) {
+        						horaDiaActual = spnHoraDia.getValue().toString();
+        						casa.nuevoQuery("cambiar_hora", horaDiaActual);
+        						txtSugerenciaPuerta.setText(casa.getSugerenciaPuertas());
+        					}
+        				});
+        				btnAceptarHora.setBounds(189, 27, 89, 23);
+        				panel_2.add(btnAceptarHora);
+        				
+        				JLabel lblSugerenciaPuertas = new JLabel("Sugerencia:");
+        				lblSugerenciaPuertas.setBounds(158, 290, 70, 14);
+        				lblHoraDia.add(lblSugerenciaPuertas);
+        				
+        				txtSugerenciaPuerta = new JLabel("Aqui sugerencia");
+        				txtSugerenciaPuerta.setBounds(157, 307, 209, 14);
+        				lblHoraDia.add(txtSugerenciaPuerta);
+        				
+        				JLabel lblNewLabel_5 = new JLabel("Programar apagado:");
+        				lblNewLabel_5.setBounds(10, 501, 107, 14);
+        				lblHoraDia.add(lblNewLabel_5);
+        				
+        				spnApagadoElectro = new JSpinner();
+        				spnApagadoElectro.setModel(new SpinnerNumberModel(0, 0, 23, 1));
+        				spnApagadoElectro.setBounds(116, 498, 48, 20);
+        				lblHoraDia.add(spnApagadoElectro);
+        				
+        				btnProgramarElectro = new JButton("Programar");
+        				btnProgramarElectro.addActionListener(new ActionListener() {
+        					public void actionPerformed(ActionEvent e) {
+        						casa.programarApagado(electronico, spnApagadoElectro.getValue().toString());
+        					}
+        				});
+        				btnProgramarElectro.setBounds(169, 497, 83, 23);
+        				lblHoraDia.add(btnProgramarElectro);
+        				chkVisitas.addActionListener(new ActionListener() {
+        					public void actionPerformed(ActionEvent e) {
+        						if(chkVisitas.isSelected())
+        						{
+        							casa.nuevoQuery("visitantes", "on");
+        						}else
+        						{
+        							casa.nuevoQuery("visitantes", "off");
+        						}
+        					}
+        				});
         				
         				JLabel lblNewLabel_2 = new JLabel("Zonas de la casa");
         				lblNewLabel_2.setBounds(404, 34, 89, 14);
@@ -820,19 +907,109 @@ public class Principal extends JFrame {
         				MainPanel.add(lblNewLabel_3_1);
         				
         				JButton btnSalirDeLa = new JButton("Salir de la zona");
-        				btnSalirDeLa.setEnabled(false);
+        				btnSalirDeLa.addActionListener(new ActionListener() {
+        					public void actionPerformed(ActionEvent e) {
+        						casa.quitarMiembroZona(miembroZona, zona);
+        						casa.getMiembrosZona(modelListaMiembrosZona, zona);
+        						casa.nuevoQuery("alerta_nadie_lugar", zona);
+        					}
+        				});
         				btnSalirDeLa.setBounds(549, 142, 135, 23);
         				MainPanel.add(btnSalirDeLa);
         				
         				JButton btnQuitar = new JButton("Quitar");
-        				btnQuitar.setEnabled(false);
+        				btnQuitar.addActionListener(new ActionListener() {
+        					public void actionPerformed(ActionEvent e) {
+        						
+        					}
+        				});
         				btnQuitar.setBounds(694, 142, 135, 23);
         				MainPanel.add(btnQuitar);
         				
-        				JButton button_2 = new JButton("X");
-        				button_2.setEnabled(false);
-        				button_2.setBounds(501, 142, 38, 23);
-        				MainPanel.add(button_2);
+        				JButton btnQuitarZona = new JButton("X");
+        				btnQuitarZona.addActionListener(new ActionListener() {
+        					public void actionPerformed(ActionEvent e) {
+        						casa.nuevoQuery("quitar_lugar", zona);
+        						casa.getZonas(modelListaZonas);
+        						casa.getMiembrosZona(modelListaMiembrosZona, zona);
+        						casa.getElectronicosZona(modelListaElectronicosZona, zona);
+        					}
+        				});
+        				btnQuitarZona.setBounds(501, 142, 38, 23);
+        				MainPanel.add(btnQuitarZona);
+        				
+        				JPanel panel_3 = new JPanel();
+        				panel_3.setBorder(new SoftBevelBorder(BevelBorder.RAISED, null, null, null, null));
+        				panel_3.setBounds(364, 605, 523, 27);
+        				MainPanel.add(panel_3);
+        				
+        				JLabel lblTemperatura = new JLabel("Temperatura actual de la casa:");
+        				
+        				spnTemperatura = new JSpinner();
+        				spnTemperatura.setModel(new SpinnerNumberModel(25, 15, 38, 1));
+						casa.nuevoQuery("nueva_temperatura", spnTemperatura.getValue().toString());
+        				spnTemperatura.addChangeListener(new ChangeListener() {
+        					public void stateChanged(ChangeEvent arg0) {
+        						casa.nuevoQuery("nueva_temperatura", spnTemperatura.getValue().toString());
+        					}
+        				});
+        				
+        				JLabel lblNewLabel_6 = new JLabel("Grados");
+        				GroupLayout gl_panel_3 = new GroupLayout(panel_3);
+        				gl_panel_3.setHorizontalGroup(
+        					gl_panel_3.createParallelGroup(Alignment.LEADING)
+        						.addGroup(gl_panel_3.createSequentialGroup()
+        							.addGap(182)
+        							.addComponent(lblTemperatura)
+        							.addPreferredGap(ComponentPlacement.RELATED)
+        							.addComponent(spnTemperatura, GroupLayout.PREFERRED_SIZE, 46, GroupLayout.PREFERRED_SIZE)
+        							.addPreferredGap(ComponentPlacement.RELATED)
+        							.addComponent(lblNewLabel_6)
+        							.addGap(86))
+        				);
+        				gl_panel_3.setVerticalGroup(
+        					gl_panel_3.createParallelGroup(Alignment.LEADING)
+        						.addGroup(gl_panel_3.createSequentialGroup()
+        							.addGroup(gl_panel_3.createParallelGroup(Alignment.LEADING)
+        								.addGroup(gl_panel_3.createSequentialGroup()
+        									.addGap(5)
+        									.addComponent(lblTemperatura))
+        								.addGroup(gl_panel_3.createParallelGroup(Alignment.BASELINE)
+        									.addComponent(spnTemperatura, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+        									.addComponent(lblNewLabel_6)))
+        							.addContainerGap(GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+        				);
+        				panel_3.setLayout(gl_panel_3);
+        				
+        				JPanel panel_4 = new JPanel();
+        				panel_4.setBorder(new TitledBorder(UIManager.getBorder("TitledBorder.border"), "Consumo de agua", TitledBorder.LEADING, TitledBorder.TOP, null, new Color(0, 0, 0)));
+        				panel_4.setBounds(377, 365, 428, 108);
+        				MainPanel.add(panel_4);
+        				panel_4.setLayout(null);
+        				
+        				JLabel lblNewLabel_7 = new JLabel("Cantidad estimada de agua a consumir por todos los miembros en litros:");
+        				lblNewLabel_7.setBounds(10, 39, 352, 14);
+        				panel_4.add(lblNewLabel_7);
+        				
+        				txtLitros = new JLabel("Total");
+        				txtLitros.setBounds(358, 39, 46, 14);
+        				panel_4.add(txtLitros);
+        				
+        				JLabel lblNewLabel_8 = new JLabel("Costo mensual estimado de agua:");
+        				lblNewLabel_8.setBounds(10, 78, 164, 14);
+        				panel_4.add(lblNewLabel_8);
+        				
+        				txtTotalCostoAgua = new JLabel("Total");
+        				txtTotalCostoAgua.setBounds(174, 78, 46, 14);
+        				panel_4.add(txtTotalCostoAgua);
+        				
+        				JLabel lblNewLabel_9 = new JLabel("Cantidad estimada de agua a consumir por todos los miembros en galones:");
+        				lblNewLabel_9.setBounds(10, 58, 363, 14);
+        				panel_4.add(lblNewLabel_9);
+        				
+        				txtTotalGalones = new JLabel("Total");
+        				txtTotalGalones.setBounds(368, 58, 46, 14);
+        				panel_4.add(txtTotalGalones);
         btnAgregarElectronico.addActionListener(new ActionListener() {
         	public void actionPerformed(ActionEvent arg0) {
         		AgregarElectronico addElectronico = new AgregarElectronico(casa);

@@ -478,7 +478,6 @@ public class Casa {
 	
 		for(int i = 0; i < res.length; i++)
 		{ 
-			System.out.println(res[i].get("X").toString());
 			modelListaMiembrosZona.add(i, res[i].get("X").toString());
 		}
 		
@@ -500,7 +499,36 @@ public class Casa {
 		
 	}
 
+	public boolean quitarMiembroZona(String miembro, String lugar) {
+		
+		String queryText = String.format("quitar_miembro_lugar(%s,%s)",miembro,lugar);
+		q = new Query(queryText);	
+		
+		if(q.hasSolution())
+		{
+			return true;
+		}else
+		{
+			return false;
+		}	
+	}
 
+	public boolean quitarElectronicoZona(String electronico, String lugar) {
+		
+		String queryText = String.format("quitar_electronico_lugar(%s,%s)",electronico,lugar);
+		q = new Query(queryText);	
+		
+		if(q.hasSolution())
+		{
+			return true;
+		}else
+		{
+			return false;
+		}
+		
+	}
+	
+	
 	public boolean addElectronicoZona(String electronico, String lugar) {
 		String queryText = String.format("agregar_electronico_lugar(%s,%s)",electronico,lugar);
 		q = new Query(queryText);	
@@ -514,7 +542,36 @@ public class Casa {
 		}
 		
 	}
-
+	
+	public boolean programarApagado(String electronico, String tiempo) {
+		String queryText = String.format("programar_apagado(%s,%s)",electronico,tiempo);
+		q = new Query(queryText);	
+		
+		if(q.hasSolution())
+		{
+			return true;
+		}else
+		{
+			return false;
+		}
+		
+	}
+	
+	public int getTemperatura()
+	{
+		String queryText = String.format("temperaturaHogar(X)");
+		q = new Query(queryText);	
+		
+		if(q.hasSolution())
+		{
+			return Integer.parseInt(q.getSolution().get("X").toString());
+		}else
+		{
+			return -1;
+		}
+		
+	}
+	
 
 	public void getElectronicosZona(DefaultListModel<String> modelListaElectronicosZona, String zona) {
 		
@@ -532,5 +589,22 @@ public class Casa {
 		}
 		
 	}
+
+	public String getSugerenciaPuertas() {
+		
+		String queryText = String.format("sugerencia_puertas(Mensaje)");
+		q = new Query(queryText);	
+		
+		if(q.hasSolution())
+		{
+			return q.getSolution().get("Mensaje").toString();
+			
+		}
+		
+		return "N/A";
+		
+	}
+	
+	
 	
 }

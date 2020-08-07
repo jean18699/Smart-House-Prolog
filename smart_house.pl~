@@ -29,7 +29,8 @@ quitar_miembro(Persona):-
     (salio(Persona), retract(salio(Persona))).
 
 quitar_miembro(Persona):-
-    miembro(Persona),retract(miembro(Persona)).
+    miembro(Persona),retract(miembro(Persona)),
+    retractall(tiene_miembro(_,Persona)).
 
 
 %listar miembros de la familia.
@@ -143,6 +144,13 @@ cerrar_puertas_automaticas([_|L]):-cerrar_puertas_automaticas(L).
 
 
 
+
+
+
+
+
+
+
 /*=============================================================MODULO DE RECURSOS================================================================================================*/
 
 :-dynamic electronico/1. %electronico(nombreElectronico).
@@ -169,7 +177,8 @@ quitar_electronico(Electronico):-
     (manual(Electronico), retract(manual(Electronico)));
     (automatico(Electronico), retract(automatico(Electronico))),
     (encendido(Electronico), retract(encendido(Electronico)));
-    (apagado(Electronico), retract(apagado(Electronico))).
+    (apagado(Electronico), retract(apagado(Electronico))),
+    retractall(tiene_electronico(_,Electronico)).
 
 encender(Electronico):-
     electronico(Electronico),
@@ -190,28 +199,45 @@ suma_encendidos([H|L],Total):-suma_encendidos(L,Con), Total is Con + H.
 % encendidos
 get_total_consumo(Total):- get_consumo_encendidos(Consumos),suma_encendidos(Consumos,Total).
 
+% calculo del consumo mensual de agua estimado
+% segun la cantidad de personas que habiten la casa.
 
-%llaves de agua de la casa
-nueva_llave(Nombre):-
-    not(llave(Nombre)),
-    assertz(llave(Nombre)),
-    assertz(llave_cerrada(Nombre)).
+% Se investigo lo siguiente:
 
-quitar_llave(Nombre):-
-    llave(Nombre),!,
-    retract(llave(Nombre)),!,
-    (llave_cerrada(Nombre), retract(llave_cerrada(Nombre)));
-    (llave_abierta(Nombre), retract(llave_abierta(Nombre))).
+%1 m3 = 1.000 litros
+%1 litro = 4 vasos llenos
+%1 m3 = 4.000 vasos.
 
-abrir_llave(Nombre):-
-    llave(Nombre),
-    not(llave_abierta(llave)),
-    retract(llave_cerrada(Nombre)),assert(llave_abierta(llave)).
+%El consumo promedio mensual de agua por
+% persona es de máximo 4 m3. Multiplica este valor por la cantidad de
+% personas que viven en tu casa y obtendrás el consumo promedio mensual
+% del hogar.
 
-cerrar_llave(Nombre):-
-    llave(Nombre),
-    llave_abierta(llave),
-    retract(llave_abierta(Nombre)),assert(llave_cerrada(llave)).
+get_consumo_total_agua(Total):- var(Total),
+    get_miembros(Miembros),length(Miembros,Cant),
+    Total is Cant * 4000. %quiero m3 en litros, asi que 4 x 1000 litros = 4000 litros promedio por persona
+
+% Ahora queremos saber el costo de agua en dolares segun los litros, y
+% para esto primero lo transformamos a galones internacionales o
+% estadounidenes:
+
+%1 galon internacional = 3,785 litros
+%1 litro USA = 0.2642 galones
+
+%Entonces la formula: TotalLitros * 0.2642.
+
+litro_a_galon(Litros,Galones):- (integer(Litros);float(Litros)),
+    Galones is Litros * 0.2642,!.
+
+% en USA 4.70$ por 1000 galones. Asi que con las funcion creada de litro
+% a galon obtendre los galones, saco el piso en el caso de que salga
+% algun valor como 1215 galones para obtener 1000 galones exactos y
+% multiplicarlos por 4.70 dolares.
+
+get_costos_agua(Costo):-
+    get_consumo_total_agua(Total),litro_a_galon(Total,Galones),
+    floor(Galones,G), Costo is 4.62 * G.
+
 
 
 % Agregando configuracion de dispositivos que reaccionen a si hay
@@ -222,6 +248,13 @@ cerrar_llave(Nombre):-
 
 nuevo_lugar(Nombre):-
     not(zonaCasa(Nombre)),assertz(zonaCasa(Nombre)).
+
+
+quitar_lugar(Nombre):-
+    zonaCasa(Nombre),retract(zonaCasa(Nombre)),
+    (tiene_miembro(Nombre,_), retractall(tiene_miembro(Nombre,_)));
+    (tiene_electronico(Nombre,_),retractall(tiene_electronico(Nombre,_))).
+
 
 agregar_electronico_lugar(Electro,Lugar):-
     electronico(Electro),zonaCasa(Lugar),
@@ -276,11 +309,173 @@ check_all_lugares([]):-!.
 check_all_lugares([H|L]):-alerta_nadie_lugar(H),check_all_lugares(L).
 check_all_lugares([_|L]):-check_all_lugares(L).
 
+apagar_electronicos_automaticos([]):-!.
+apagar_electronicos_automaticos([H|L]):- automatico(H),apagar(H),apagar_electronicos_automaticos(L).
+apagar_electronicos_automaticos([_|L]):-apagar_electronicos_automaticos(L).
 
+
+% regla por si se quieren revisar todos los lugares a la vez y si estan
+% vacios
 alerta_nadie_todos_lugares():-
      get_all_lugares(Lugares),check_all_lugares(Lugares),!.
 
 
+% Apagar electronicos en el caso de que todos hayan salido o esten
+% durmiendo. Ademas, solo se apagan los electronicos automaticos
+alerta_electronicos():- not(modo_visita),(get_miembros(Miembros), todos_dormidos(Miembros)),!,
+    findall(Electro,electronico(Electro),Electronicos),apagar_electronicos_automaticos(Electronicos).
 
+alerta_electronicos():-not(modo_visita), get_miembros(Miembros), todos_salieron(Miembros),!,
+     findall(Electro,electronico(Electro),Electronicos),apagar_electronicos_automaticos(Electronicos).
+
+
+% Conocer el momento en el que se encuentra el dia. Asi se podra tambien
+% controlar los dispositivos:
+:-dynamic horaDiaActual/1.
+:-dynamic temporizado/2. %hecho que recibe un electronico y un numero que indica la hora a la que quieres que se apague
+
+cambiar_hora(Hora):-integer(Hora),
+    (horaDiaActual(_), retract(horaDiaActual(_)),assertz(horaDiaActual(Hora)),check_electronicos_temporizados(),!);
+    assertz(horaDiaActual(Hora)),check_electronicos_temporizados().
+
+verificar_momento_dia(Momento):- var(Momento), horaDiaActual(Hora),
+    Hora < 24,
+    ((Hora >= 6 , Hora < 12),Momento = 'mañana',!).
+
+verificar_momento_dia(Momento):- var(Momento), horaDiaActual(Hora),
+    Hora < 24,
+    ((Hora >= 12 , Hora =< 18),Momento = 'tarde',!).
+
+verificar_momento_dia(Momento):- var(Momento), horaDiaActual(Hora),
+    Hora < 24, (Momento = 'noche',!).
+
+
+sugerencia_puertas(Mensaje):- var(Mensaje),
+     verificar_momento_dia(Momento),
+    (Momento = 'mañana', Mensaje = 'Buen momento para abrir las puertas',!).
+
+sugerencia_puertas(Mensaje):- var(Mensaje),
+     verificar_momento_dia(Momento),
+    (Momento = 'tarde', Mensaje = 'No se recomienda nada en particular',!).
+
+sugerencia_puertas(Mensaje):- var(Mensaje),
+    verificar_momento_dia(Momento),
+    (Momento = 'noche', Mensaje = 'Recuerde cerrar las puertas',!).
+
+
+% regla para apagar un dispositivo electronico luego de un lapso de
+% tiempo
+
+programar_apagado(Electronico,Tiempo):-electronico(Electronico),integer(Tiempo), not(apagado(Electronico)),
+    (temporizado(Electronico,_), retract(temporizado(Electronico,_)), assertz(temporizado(Electronico,Tiempo)));
+    assertz(temporizado(Electronico,Tiempo)).
+
+apagar_temporizados([]):-!.
+apagar_temporizados([H|L]):-temporizado(H,Tiempo), horaDiaActual(Hora), (Hora >= Tiempo),apagar(H),retract(temporizado(H,Tiempo)),apagar_temporizados(L).
+apagar_temporizados([_|L]):-apagar_temporizados(L).
+
+
+check_electronicos_temporizados():-findall(Elec, electronico(Elec), Electronicos),apagar_temporizados(Electronicos),!.
+
+
+%control ambiental
+:-dynamic temperaturaHogar/1.
+
+%Segun lo investigado: La temperatura de confort se sitúa entre los
+% 18°C y los 21°C para una persona en reposo y entre los 16°C y los 18°C
+% para una persona activa.
+
+nueva_temperatura(Temp):-integer(Temp),
+    (temperaturaHogar(_), retract(temperaturaHogar(_)),assertz(temperaturaHogar(Temp)),!);
+    assertz(temperaturaHogar(Temp)).
+
+
+%Si todas las personas duermen, se regula la temperatura a 20 grados
+regular_temperatura():-
+    get_miembros(Miembros), todos_dormidos(Miembros),
+    nueva_temperatura(20),!.
+
+%De lo contrario, se regula la temperatura a 17 grados.
+regular_temperatura():- nueva_temperatura(17).
+
+
+
+%FUENTES DE ENERGIA RENOVABLE
+
+% La mas comun son los paneles solares por lo que solo se usara esa. La
+% casa tendra un modo indique cuando se quiere usar las fuentes
+% renovables o no y dara sugerencias.
+
+:-dynamic panel_solar/4. %panel_solar(nombre,orientacion,angulo,energia producida).
+posicion_sol_tiempo(6,sur,15). %hora, orientacion, angulo
+posicion_sol_tiempo(7,sur,20).
+posicion_sol_tiempo(8,sur,30).
+posicion_sol_tiempo(9,sur,45).
+posicion_sol_tiempo(10,sur,60).
+posicion_sol_tiempo(11,sur,75).
+posicion_sol_tiempo(12,sur,90).
+posicion_sol_tiempo(12,norte,90).
+posicion_sol_tiempo(13,norte,75).
+posicion_sol_tiempo(14,norte,60).
+posicion_sol_tiempo(15,norte,45).
+posicion_sol_tiempo(16,norte,30).
+posicion_sol_tiempo(17,norte,20).
+posicion_sol_tiempo(18,norte,15).
+
+nuevo_panel(Nombre,Orientacion,Angulo):-atomic(Nombre),atomic(Orientacion), integer(Angulo),
+    not(panel_solar(Nombre,_,_)),
+    (Angulo >= 0 , Angulo =< 180),assertz(panel_solar(Nombre,Orientacion,Angulo)),!.
+
+quitar_panel(Nombre):-atomic(Nombre),
+    panel_solar(Nombre,_,_),retract(panel_solar(Nombre,_,_)).
+
+ajustar_panel(Nombre,Angulo):-
+    panel_solar(Nombre,X,_),retract(panel_solar(Nombre,X,_)),
+    assertz(panel_solar(Nombre,X,Angulo)).
+
+% Se quiere generar una sugerencia para cada panel para dar el mejor
+% angulo con respecto al sol de manera que quede perpendicular a este.
+
+get_posicion_sol(Posicion):-
+    horaDiaActual(Hora),posicion_sol_tiempo(Hora,_,Posicion).
+
+% A estos hechos les ingreso un panel y me devolvera la mejor posicion
+% para que sea perpendicular con respecto al sol, ya sea un panel con
+% orientacion norte o sur
+sugerencia_posicion_perpendicular_panel(Nombre,Posicion):-panel_solar(Nombre,norte,Angulo),
+    horaDiaActual(Hora),posicion_sol_tiempo(Hora,norte,P),
+    PosPerpend is P - 90,
+    abs(PosPerpend, AbsPosPerpend),
+    AbsPosPerpend = Angulo,
+    Posicion = "Este panel ya esta en su angulo optimo",!,fail.
+
+sugerencia_posicion_perpendicular_panel(Nombre,Posicion):-panel_solar(Nombre,norte,_),
+    horaDiaActual(Hora),posicion_sol_tiempo(Hora,norte,P),
+    PosPerpend is P - 90,
+    abs(PosPerpend, AbsPosPerpend),
+    Posicion = AbsPosPerpend,!.
+
+
+sugerencia_posicion_perpendicular_panel(Nombre,Posicion):- panel_solar(Nombre,sur,Angulo),
+    horaDiaActual(Hora),posicion_sol_tiempo(Hora,sur,P), PosPerpend is P - 90,
+    abs(PosPerpend, AbsPosPerpend),
+    AbsPosPerpend = Angulo,
+    Posicion =  "Este panel ya esta en su angulo optimo",!,fail.
+
+sugerencia_posicion_perpendicular_panel(Nombre,Posicion):- panel_solar(Nombre,sur,_),
+    horaDiaActual(Hora),posicion_sol_tiempo(Hora,sur,P), PosPerpend is P - 90,
+    abs(PosPerpend, AbsPosPerpend),
+    Posicion = AbsPosPerpend,!.
+
+
+sugerencia_posicion_perpendicular_panel(_,Posicion):-
+    Posicion = "Este panel no detecta sol, asi que no hay un angulo recomendado",!,fail.
+
+ajustar_paneles_automaticamente([]):-!.
+ajustar_paneles_automaticamente([H|L]):-sugerencia_posicion_perpendicular_panel(H,Recomendacion),ajustar_panel(H,Recomendacion),ajustar_paneles_automaticamente(L).
+ajustar_paneles_automaticamente([_|L]):-ajustar_paneles_automaticamente(L).
+
+optimizar_paneles():-
+    findall(Panel,panel_solar(Panel,_,_),Paneles),ajustar_paneles_automaticamente(Paneles),!.
 
 
