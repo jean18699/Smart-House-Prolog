@@ -584,7 +584,6 @@ public class Casa {
 	
 		for(int i = 0; i < res.length; i++)
 		{ 
-			System.out.println(res[i].get("X").toString());
 			modelListaElectronicosZona.add(i, res[i].get("X").toString());
 		}
 		
@@ -605,6 +604,37 @@ public class Casa {
 		
 	}
 	
+	public boolean addPanel(String nombre, String orientacion, String energia)
+	{
+		String queryText = String.format("agregar_panel(%s,%s,15,%s)",nombre,orientacion,energia);
+		q = new Query(queryText);	
+		
+		if(q.hasSolution())
+		{
+			return true;
+		}else
+		{
+			return false;
+		}
+				
+	}
+	
+	public void getPaneles(DefaultListModel<String> modelListaPaneles) {
+		
+		String queryText = String.format("panel_solar(X,_,_,_)");
+		q = new Query(queryText);	
+		
+		modelListaPaneles.clear();
+		
+		Map<String, Term>[] res = q.allSolutions();
+	
+		for(int i = 0; i < res.length; i++)
+		{
+			System.out.println(modelListaPaneles);
+			modelListaPaneles.add(i, res[i].get("X").toString());
+		}
+	}
+
 	
 	
 }
