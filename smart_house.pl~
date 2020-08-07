@@ -422,16 +422,20 @@ posicion_sol_tiempo(16,norte,30).
 posicion_sol_tiempo(17,norte,20).
 posicion_sol_tiempo(18,norte,15).
 
-nuevo_panel(Nombre,Orientacion,Angulo):-atomic(Nombre),atomic(Orientacion), integer(Angulo),
+nuevo_panel(Nombre,Orientacion,Angulo,Energia):-atomic(Nombre),atomic(Orientacion), integer(Angulo),
     not(panel_solar(Nombre,_,_)),
-    (Angulo >= 0 , Angulo =< 180),assertz(panel_solar(Nombre,Orientacion,Angulo)),!.
+    (Angulo >= 0 , Angulo =< 180),assertz(panel_solar(Nombre,Orientacion,Angulo,Energia)),!.
 
 quitar_panel(Nombre):-atomic(Nombre),
-    panel_solar(Nombre,_,_),retract(panel_solar(Nombre,_,_)).
+    panel_solar(Nombre,_,_,_),retract(panel_solar(Nombre,_,_,_)).
 
 ajustar_panel(Nombre,Angulo):-
-    panel_solar(Nombre,X,_),retract(panel_solar(Nombre,X,_)),
-    assertz(panel_solar(Nombre,X,Angulo)).
+    panel_solar(Nombre,X,_,Energia),retract(panel_solar(Nombre,X,_,_)),
+    assertz(panel_solar(Nombre,X,Angulo,Energia)).
+
+cambiar_orientacion_panel(Nombre,Orientacion):-
+    panel_solar(Nombre,_,_,_),retract(panel_solar(Nombre,_,_,_)),
+    assertz(panel_solar(Nombre,X,Angulo,)).
 
 % Se quiere generar una sugerencia para cada panel para dar el mejor
 % angulo con respecto al sol de manera que quede perpendicular a este.
@@ -442,7 +446,7 @@ get_posicion_sol(Posicion):-
 % A estos hechos les ingreso un panel y me devolvera la mejor posicion
 % para que sea perpendicular con respecto al sol, ya sea un panel con
 % orientacion norte o sur
-sugerencia_posicion_perpendicular_panel(Nombre,Posicion):-panel_solar(Nombre,norte,Angulo),
+sugerencia_posicion_perpendicular_panel(Nombre,Posicion):-panel_solar(Nombre,norte,Angulo,_),
     horaDiaActual(Hora),posicion_sol_tiempo(Hora,norte,P),
     PosPerpend is P - 90,
     abs(PosPerpend, AbsPosPerpend),
@@ -456,13 +460,13 @@ sugerencia_posicion_perpendicular_panel(Nombre,Posicion):-panel_solar(Nombre,nor
     Posicion = AbsPosPerpend,!.
 
 
-sugerencia_posicion_perpendicular_panel(Nombre,Posicion):- panel_solar(Nombre,sur,Angulo),
+sugerencia_posicion_perpendicular_panel(Nombre,Posicion):- panel_solar(Nombre,sur,Angulo,_),
     horaDiaActual(Hora),posicion_sol_tiempo(Hora,sur,P), PosPerpend is P - 90,
     abs(PosPerpend, AbsPosPerpend),
     AbsPosPerpend = Angulo,
     Posicion =  "Este panel ya esta en su angulo optimo",!,fail.
 
-sugerencia_posicion_perpendicular_panel(Nombre,Posicion):- panel_solar(Nombre,sur,_),
+sugerencia_posicion_perpendicular_panel(Nombre,Posicion):- panel_solar(Nombre,sur,_,_),
     horaDiaActual(Hora),posicion_sol_tiempo(Hora,sur,P), PosPerpend is P - 90,
     abs(PosPerpend, AbsPosPerpend),
     Posicion = AbsPosPerpend,!.
@@ -477,5 +481,13 @@ ajustar_paneles_automaticamente([_|L]):-ajustar_paneles_automaticamente(L).
 
 optimizar_paneles():-
     findall(Panel,panel_solar(Panel,_,_),Paneles),ajustar_paneles_automaticamente(Paneles),!.
+
+
+
+
+
+
+
+
 
 

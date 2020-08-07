@@ -427,11 +427,15 @@ nuevo_panel(Nombre,Orientacion,Angulo,Energia):-atomic(Nombre),atomic(Orientacio
     (Angulo >= 0 , Angulo =< 180),assertz(panel_solar(Nombre,Orientacion,Angulo,Energia)),!.
 
 quitar_panel(Nombre):-atomic(Nombre),
-    panel_solar(Nombre,_,_),retract(panel_solar(Nombre,_,_)).
+    panel_solar(Nombre,_,_,_),retract(panel_solar(Nombre,_,_,_)).
 
 ajustar_panel(Nombre,Angulo):-
-    panel_solar(Nombre,X,_),retract(panel_solar(Nombre,X,_)),
-    assertz(panel_solar(Nombre,X,Angulo)).
+    panel_solar(Nombre,X,_,Energia),retract(panel_solar(Nombre,X,_,_)),
+    assertz(panel_solar(Nombre,X,Angulo,Energia)).
+
+cambiar_orientacion_panel(Nombre,Orientacion):-
+    panel_solar(Nombre,X,Angulo,_),retract(panel_solar(Nombre,_,_,_)),
+    assertz(panel_solar(Nombre,X,Angulo,Orientacion)).
 
 % Se quiere generar una sugerencia para cada panel para dar el mejor
 % angulo con respecto al sol de manera que quede perpendicular a este.
