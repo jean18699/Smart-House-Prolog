@@ -57,6 +57,7 @@ public class Principal extends JFrame {
 	private DefaultListModel<String> modelListaZonas;
 	private DefaultListModel<String> modelListaMiembrosZona;
 	private DefaultListModel<String> modelListaElectronicosZona;
+	private DefaultListModel<String> modelListaPaneles;
 	private String miembro;
 	private String puerta;
 	private String electronico;
@@ -92,6 +93,7 @@ public class Principal extends JFrame {
 	JButton btnCambiarOrientacionPanel;
 	JSpinner spnAnguloPanel;
 	JLabel txtOrientacionPanel;
+	JList listPaneles;
 	
 	
 	/**
@@ -162,6 +164,7 @@ public class Principal extends JFrame {
 		modelListaMiembrosZona = new DefaultListModel<String>();
 		modelListaZonas = new DefaultListModel<String>();
 		modelListaElectronicosZona = new DefaultListModel<String>();
+		modelListaPaneles = new DefaultListModel<String>();
 		
 		JButton btnAgregarMiembro = new JButton("Agregar");
 		btnAgregarMiembro.addActionListener(new ActionListener() {
@@ -815,6 +818,15 @@ public class Principal extends JFrame {
         				lblHoraDia.add(lblNewLabel_10);
         				
         				btnAgregarPanel = new JButton("Agregar");
+        				btnAgregarPanel.addActionListener(new ActionListener() {
+        					public void actionPerformed(ActionEvent arg0) {
+        						AgregarPanelSolar addPanel = new AgregarPanelSolar(casa);
+        						addPanel.setLocationRelativeTo(null);
+                				addPanel.setModal(true);
+                				addPanel.setVisible(true);
+                				casa.getPaneles(modelListaPaneles);
+        					}
+        				});
         				btnAgregarPanel.setBounds(10, 644, 89, 23);
         				lblHoraDia.add(btnAgregarPanel);
         				
@@ -826,7 +838,7 @@ public class Principal extends JFrame {
         				scrollPane_1_1_1.setBounds(10, 552, 135, 81);
         				lblHoraDia.add(scrollPane_1_1_1);
         				
-        				JList listPaneles = new JList();
+        				listPaneles = new JList();
         				scrollPane_1_1_1.setViewportView(listPaneles);
         				listPaneles.setVisibleRowCount(2);
         				listPaneles.setSelectionMode(ListSelectionModel.SINGLE_INTERVAL_SELECTION);
