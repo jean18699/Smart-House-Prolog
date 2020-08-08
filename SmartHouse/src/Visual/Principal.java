@@ -46,6 +46,8 @@ import javax.swing.event.ChangeListener;
 import javax.swing.event.ChangeEvent;
 import javax.swing.border.EtchedBorder;
 import java.awt.Window.Type;
+import javax.swing.JComboBox;
+import javax.swing.DefaultComboBoxModel;
 
 
 public class Principal extends JFrame {
@@ -64,6 +66,7 @@ public class Principal extends JFrame {
 	private String zona;
 	private String miembroZona;
 	private String electronicoZona;
+	String panelSelected;
 	String horaDiaActual;
 	JRadioButton radFamiliarDurmiendo;
 	JLabel txtTotalDormidos;
@@ -92,8 +95,11 @@ public class Principal extends JFrame {
 	JButton btnQuitarPanel;
 	JButton btnCambiarOrientacionPanel;
 	JSpinner spnAnguloPanel;
-	JLabel txtOrientacionPanel;
 	JList listPaneles;
+	JComboBox cmbOrientacion;
+	JLabel txtEnergiaTotalProducida;
+	JLabel txtSugerenciaPanelNorte;
+	JLabel txtSugerenciaPanelSur;
 	
 	
 	/**
@@ -152,7 +158,7 @@ public class Principal extends JFrame {
 	
 		
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		setBounds(100, 100, 893, 736);
+		setBounds(100, 100, 1014, 728);
 		MainPanel = new JPanel();
 		MainPanel.setBorder(new EmptyBorder(5, 5, 5, 5));
 		setContentPane(MainPanel);
@@ -684,15 +690,7 @@ public class Principal extends JFrame {
         txtConsumoTotal.setBounds(242, 441, 46, 14);
         MainPanel.add(txtConsumoTotal);
         
-    	DefaultListCellRenderer renderer = (DefaultListCellRenderer)listMiembros.getCellRenderer();
-		renderer.setHorizontalAlignment(JLabel.CENTER);
-		
-		DefaultListCellRenderer renderer2 = (DefaultListCellRenderer)listPuertas.getCellRenderer();
-		renderer2.setHorizontalAlignment(JLabel.CENTER);
-		
-		DefaultListCellRenderer renderer3 = (DefaultListCellRenderer)listElectronicos.getCellRenderer();
-		renderer3.setHorizontalAlignment(JLabel.CENTER);
-		
+    	
 		/*ButtonGroup bgroup1 = new ButtonGroup();
         bgroup1.add(radEstadoSalir);
         bgroup1.add(radFamiliarDurmiendo);
@@ -825,12 +823,20 @@ public class Principal extends JFrame {
                 				addPanel.setModal(true);
                 				addPanel.setVisible(true);
                 				casa.getPaneles(modelListaPaneles);
+                				txtEnergiaTotalProducida.setText(casa.getEnergiaTotalProducida());
         					}
         				});
         				btnAgregarPanel.setBounds(10, 644, 89, 23);
         				lblHoraDia.add(btnAgregarPanel);
         				
         				btnQuitarPanel = new JButton("X");
+        				btnQuitarPanel.addActionListener(new ActionListener() {
+        					public void actionPerformed(ActionEvent e) {
+        						casa.nuevoQuery("quitar_panel",panelSelected);
+        						casa.getPaneles(modelListaPaneles);
+        						txtEnergiaTotalProducida.setText(casa.getEnergiaTotalProducida());
+        					}
+        				});
         				btnQuitarPanel.setBounds(107, 644, 42, 23);
         				lblHoraDia.add(btnQuitarPanel);
         				
@@ -839,23 +845,45 @@ public class Principal extends JFrame {
         				lblHoraDia.add(scrollPane_1_1_1);
         				
         				listPaneles = new JList();
+        				listPaneles.addMouseListener(new MouseAdapter() {
+        					@Override
+        					public void mouseClicked(MouseEvent arg0) {
+        						if(arg0.getClickCount() == 1)
+        						{
+        							int index = listPaneles.locationToIndex(arg0.getPoint());
+        							panelSelected = (String) listPaneles.getModel().getElementAt(index);
+        							
+        							if(panelSelected!=null)
+        							{
+        								System.out.println(casa.getOrientacionPanel(panelSelected));
+        								cmbOrientacion.setSelectedItem(casa.getOrientacionPanel(panelSelected));
+        								spnAnguloPanel.setValue(casa.getAnguloPanel(panelSelected));
+        							}else
+        							{
+        								/*radFamiliarDurmiendo.setEnabled(false);
+        								radFamiliarDurmiendo.setSelected(false);
+        								
+        								radEstadoSalir.setEnabled(false);
+        								radEstadoSalir.setSelected(false);*/
+        							}
+        						}
+        		        	}
+        					
+        				});
         				scrollPane_1_1_1.setViewportView(listPaneles);
         				listPaneles.setVisibleRowCount(2);
+        				listPaneles.setModel(modelListaPaneles);
         				listPaneles.setSelectionMode(ListSelectionModel.SINGLE_INTERVAL_SELECTION);
         				
-        				JLabel lblNewLabel_11 = new JLabel("Orientacion actual del panel:");
+        				JLabel lblNewLabel_11 = new JLabel("Orientacion actual del panel");
         				lblNewLabel_11.setBounds(158, 554, 142, 14);
         				lblHoraDia.add(lblNewLabel_11);
-        				
-        				btnCambiarOrientacionPanel = new JButton("Cambiar orientacion");
-        				btnCambiarOrientacionPanel.setBounds(158, 571, 127, 23);
-        				lblHoraDia.add(btnCambiarOrientacionPanel);
         				
         				JLabel lblNewLabel_12 = new JLabel("Energia total producida:");
         				lblNewLabel_12.setBounds(10, 678, 135, 14);
         				lblHoraDia.add(lblNewLabel_12);
         				
-        				JLabel txtEnergiaTotalProducida = new JLabel("EnergiaTotal");
+        				txtEnergiaTotalProducida = new JLabel("0");
         				txtEnergiaTotalProducida.setBounds(128, 678, 65, 14);
         				lblHoraDia.add(txtEnergiaTotalProducida);
         				
@@ -864,13 +892,14 @@ public class Principal extends JFrame {
         				lblHoraDia.add(lblNewLabel_11_1);
         				
         				spnAnguloPanel = new JSpinner();
+        				spnAnguloPanel.addChangeListener(new ChangeListener() {
+        					public void stateChanged(ChangeEvent arg0) {
+        						casa.cambiarAnguloPanel(panelSelected, spnAnguloPanel.getValue().toString());
+        					}
+        				});
         				spnAnguloPanel.setBounds(158, 624, 46, 20);
         				lblHoraDia.add(spnAnguloPanel);
         				spnAnguloPanel.setModel(new SpinnerNumberModel(15, 15, 90, 1));
-        				
-        				txtOrientacionPanel = new JLabel("Orientacion");
-        				txtOrientacionPanel.setBounds(301, 554, 65, 14);
-        				lblHoraDia.add(txtOrientacionPanel);
         				
         				JCheckBox checkBox = new JCheckBox("Modo visitantes");
         				checkBox.setBounds(3, 7, 107, 23);
@@ -879,6 +908,30 @@ public class Principal extends JFrame {
         				JCheckBox chckbxModoEnergiaRenovable = new JCheckBox("Modo energia renovable");
         				chckbxModoEnergiaRenovable.setBounds(116, 6, 147, 23);
         				lblHoraDia.add(chckbxModoEnergiaRenovable);
+        				
+        				cmbOrientacion = new JComboBox();
+        				cmbOrientacion.setModel(new DefaultComboBoxModel(new String[] {"norte", "sur"}));
+        				cmbOrientacion.setBounds(158, 574, 105, 20);
+        				lblHoraDia.add(cmbOrientacion);
+        				
+        				btnCambiarOrientacionPanel = new JButton("Cambiar");
+        				btnCambiarOrientacionPanel.addActionListener(new ActionListener() {
+        					public void actionPerformed(ActionEvent e) {
+        						casa.cambiarOrientacionPanel(panelSelected, cmbOrientacion.getSelectedItem().toString());
+        					}
+        				});
+        				btnCambiarOrientacionPanel.setBounds(273, 573, 71, 23);
+        				lblHoraDia.add(btnCambiarOrientacionPanel);
+        				
+        				JButton btnOptimizarPaneles = new JButton("Optimizar paneles");
+        				btnOptimizarPaneles.addActionListener(new ActionListener() {
+        					public void actionPerformed(ActionEvent e) {
+        						casa.nuevoQuery("optimizar_paneles", "");
+        						spnAnguloPanel.setValue(casa.getAnguloPanel(panelSelected));
+        					}
+        				});
+        				btnOptimizarPaneles.setBounds(158, 655, 189, 23);
+        				lblHoraDia.add(btnOptimizarPaneles);
         				
         				JLabel lblNewLabel_2 = new JLabel("Zonas de la casa");
         				lblNewLabel_2.setBounds(404, 34, 89, 14);
@@ -975,7 +1028,7 @@ public class Principal extends JFrame {
         				
         				JPanel panel_3 = new JPanel();
         				panel_3.setBorder(new SoftBevelBorder(BevelBorder.RAISED, null, null, null, null));
-        				panel_3.setBounds(364, 674, 523, 27);
+        				panel_3.setBounds(364, 674, 644, 27);
         				MainPanel.add(panel_3);
         				
         				JLabel lblTemperatura = new JLabel("Temperatura actual de la casa:");
@@ -999,9 +1052,13 @@ public class Principal extends JFrame {
         				JButton btnAceptarHora = new JButton("OK");
         				btnAceptarHora.addActionListener(new ActionListener() {
         					public void actionPerformed(ActionEvent e) {
+        						
         						horaDiaActual = spnHoraDia.getValue().toString();
         						casa.nuevoQuery("cambiar_hora", horaDiaActual);
         						txtSugerenciaPuerta.setText(casa.getSugerenciaPuertas());
+        						txtSugerenciaPanelNorte.setText(casa.getSugerenciaPanelesNorte());
+        						txtSugerenciaPanelSur.setText(casa.getSugerenciaPanelesSur());
+        						//casa.nuevoQuery(query, arg)
         					}
         				});
         				GroupLayout gl_panel_3 = new GroupLayout(panel_3);
@@ -1011,16 +1068,16 @@ public class Principal extends JFrame {
         							.addGap(10)
         							.addComponent(lblTemperatura)
         							.addGap(4)
-        							.addComponent(spnTemperatura, GroupLayout.DEFAULT_SIZE, 46, Short.MAX_VALUE)
+        							.addComponent(spnTemperatura, GroupLayout.DEFAULT_SIZE, 56, Short.MAX_VALUE)
         							.addGap(4)
         							.addComponent(lblNewLabel_6)
-        							.addGap(18)
-        							.addComponent(lblNewLabel_4, GroupLayout.DEFAULT_SIZE, 112, Short.MAX_VALUE)
-        							.addGap(4)
-        							.addComponent(spnHoraDia, GroupLayout.DEFAULT_SIZE, 59, Short.MAX_VALUE)
-        							.addGap(6)
-        							.addComponent(btnAceptarHora, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-        							.addGap(24))
+        							.addGap(82)
+        							.addComponent(lblNewLabel_4, GroupLayout.DEFAULT_SIZE, 122, Short.MAX_VALUE)
+        							.addPreferredGap(ComponentPlacement.RELATED)
+        							.addComponent(spnHoraDia, GroupLayout.DEFAULT_SIZE, 66, Short.MAX_VALUE)
+        							.addPreferredGap(ComponentPlacement.RELATED)
+        							.addComponent(btnAceptarHora, GroupLayout.DEFAULT_SIZE, 57, Short.MAX_VALUE)
+        							.addGap(52))
         				);
         				gl_panel_3.setVerticalGroup(
         					gl_panel_3.createParallelGroup(Alignment.LEADING)
@@ -1034,12 +1091,11 @@ public class Principal extends JFrame {
         							.addGap(4)
         							.addComponent(lblNewLabel_6))
         						.addGroup(gl_panel_3.createSequentialGroup()
-        							.addGap(4)
-        							.addComponent(lblNewLabel_4))
-        						.addGroup(gl_panel_3.createSequentialGroup()
         							.addGap(1)
-        							.addComponent(spnHoraDia, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
-        						.addComponent(btnAceptarHora)
+        							.addGroup(gl_panel_3.createParallelGroup(Alignment.BASELINE)
+        								.addComponent(lblNewLabel_4)
+        								.addComponent(spnHoraDia, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+        								.addComponent(btnAceptarHora)))
         				);
         				panel_3.setLayout(gl_panel_3);
         				
@@ -1075,7 +1131,7 @@ public class Principal extends JFrame {
         				
         				JPanel panel_2 = new JPanel();
         				panel_2.setBorder(new TitledBorder(null, "Informacion de energia", TitledBorder.LEADING, TitledBorder.TOP, null, null));
-        				panel_2.setBounds(376, 569, 428, 94);
+        				panel_2.setBounds(376, 569, 622, 94);
         				MainPanel.add(panel_2);
         				panel_2.setLayout(null);
         				
@@ -1090,6 +1146,14 @@ public class Principal extends JFrame {
         				JLabel lblAvisoDeConsumo = new JLabel("Aviso de consumo:");
         				lblAvisoDeConsumo.setBounds(10, 73, 90, 14);
         				panel_2.add(lblAvisoDeConsumo);
+        				
+        				txtSugerenciaPanelNorte = new JLabel("");
+        				txtSugerenciaPanelNorte.setBounds(225, 23, 387, 14);
+        				panel_2.add(txtSugerenciaPanelNorte);
+        				
+        				txtSugerenciaPanelSur = new JLabel("");
+        				txtSugerenciaPanelSur.setBounds(216, 48, 396, 14);
+        				panel_2.add(txtSugerenciaPanelSur);
         btnAgregarElectronico.addActionListener(new ActionListener() {
         	public void actionPerformed(ActionEvent arg0) {
         		AgregarElectronico addElectronico = new AgregarElectronico(casa);
@@ -1103,6 +1167,25 @@ public class Principal extends JFrame {
         	}
         });
         
+        DefaultListCellRenderer renderer = (DefaultListCellRenderer)listMiembros.getCellRenderer();
+		renderer.setHorizontalAlignment(JLabel.CENTER);
+		
+		DefaultListCellRenderer renderer2 = (DefaultListCellRenderer)listPuertas.getCellRenderer();
+		renderer2.setHorizontalAlignment(JLabel.CENTER);
+		
+		DefaultListCellRenderer renderer3 = (DefaultListCellRenderer)listElectronicos.getCellRenderer();
+		renderer3.setHorizontalAlignment(JLabel.CENTER);
+		
+		DefaultListCellRenderer renderer4 = (DefaultListCellRenderer)listPaneles.getCellRenderer();
+		renderer4.setHorizontalAlignment(JLabel.CENTER);
+		
+		DefaultListCellRenderer renderer5 = (DefaultListCellRenderer)listMiembrosZona.getCellRenderer();
+		renderer5.setHorizontalAlignment(JLabel.CENTER);
+		
+		DefaultListCellRenderer renderer6 = (DefaultListCellRenderer)listElectronicosZona.getCellRenderer();
+		renderer6.setHorizontalAlignment(JLabel.CENTER);
+		
+
 		
 	}
 }

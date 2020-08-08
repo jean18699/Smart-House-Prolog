@@ -606,7 +606,7 @@ public class Casa {
 	
 	public boolean addPanel(String nombre, String orientacion, String energia)
 	{
-		String queryText = String.format("agregar_panel(%s,%s,15,%s)",nombre,orientacion,energia);
+		String queryText = String.format("nuevo_panel(%s,%s,15,%s)",nombre,orientacion,energia);
 		q = new Query(queryText);	
 		
 		if(q.hasSolution())
@@ -630,11 +630,156 @@ public class Casa {
 	
 		for(int i = 0; i < res.length; i++)
 		{
-			System.out.println(modelListaPaneles);
 			modelListaPaneles.add(i, res[i].get("X").toString());
 		}
 	}
 
+	public String getOrientacionPanel(String panel) {
+		
+		String queryText = String.format("panel_solar(%s,Orientacion,_,_)",panel);
+		q = new Query(queryText);	
+			
 	
+		if(q.hasSolution())
+		{
+			return q.getSolution().get("Orientacion").toString();
+			
+		}else
+		{
+			return null;
+		}
+			
+	}
+	
+	public int getAnguloPanel(String panel) {
+	
+		String queryText = String.format("panel_solar(%s,_,Angulo,_)",panel);
+		q = new Query(queryText);	
+			
+	
+		if(q.hasSolution())
+		{
+			return Integer.parseInt(q.getSolution().get("Angulo").toString());
+			
+		}else
+		{
+			return -1;
+		}
+			
+	}
+
+	public boolean cambiarOrientacionPanel(String panel,String orientacion) {
+		
+		String queryText = String.format("cambiar_orientacion_panel(%s,%s)",panel,orientacion);
+		q = new Query(queryText);	
+			
+	
+		if(q.hasSolution())
+		{
+			return true;
+			
+		}else
+		{
+			return false;
+		}
+			
+	}
+	
+	public boolean cambiarAnguloPanel(String panel,String angulo) {
+		
+		String queryText = String.format("ajustar_panel(%s,%s)",panel,angulo);
+		q = new Query(queryText);	
+			
+	
+		if(q.hasSolution())
+		{
+			return true;
+			
+		}else
+		{
+			return false;
+		}
+			
+	}
+
+	public String getEnergiaTotalProducida() {
+		
+		String queryText = String.format("total_energia_generada(X)");
+		q = new Query(queryText);	
+			
+	
+		if(q.hasSolution())
+		{
+			return q.getSolution().get("X").toString();
+			
+		}else
+		{
+			return null;
+		}
+	}
+
+	public String getSugerenciaPanelesNorte() {
+		
+		String sugerencia = null;
+		
+		String queryText = String.format("nuevo_panel(ejx1586,norte,15,0)");
+		q = new Query(queryText);	
+		
+		q.next();
+		
+		queryText = String.format("sugerencia_posicion_perpendicular_panel(ejx1586,Sugerencia)");
+		q = new Query(queryText);	
+		
+		if(q.hasSolution())
+		{
+			sugerencia =   q.getSolution().get("Sugerencia").toString();
+			
+		}
+		
+		q = new Query("quitar_panel(ejx1586)");
+		
+		if(q.hasSolution())
+		{
+			return sugerencia;
+		}else
+		{
+			return null;
+		}
+		
+		
+	}
+	
+	public String getSugerenciaPanelesSur()
+	{
+		String sugerencia = null;
+		
+		String queryText = String.format("nuevo_panel(ejx1586,sur,15,0)");
+		q = new Query(queryText);	
+		
+		q.next();
+		
+		queryText = String.format("sugerencia_posicion_perpendicular_panel(ejx1586,Sugerencia)");
+		q = new Query(queryText);	
+		
+		if(q.hasSolution())
+		{
+			sugerencia =   q.getSolution().get("Sugerencia").toString();
+			
+		}
+		
+		q = new Query("quitar_panel(ejx1586)");
+		
+		if(q.hasSolution())
+		{
+			return sugerencia;
+		}else
+		{
+			return null;
+		}
+		
+		
+		
+		
+	}
 	
 }

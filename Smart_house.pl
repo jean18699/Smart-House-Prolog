@@ -1,4 +1,4 @@
-/*============================MODULO DE SEGURIDAD===================*/
+ /*============================MODULO DE SEGURIDAD===================*/
 
 % El sistema experto recibirá información de sensores de movimiento, y de
 % otros tipos, y será alimentado con protocolos de seguridad para
@@ -192,12 +192,15 @@ apagar(Electronico):-
     retract(encendido(Electronico)), assertz(apagado(Electronico)).
 
 get_consumo_encendidos(Consumos):-findall(Consumo, (consumo(Electronico,Consumo),encendido(Electronico)),Consumos).
-suma_encendidos([],0).
-suma_encendidos([H|L],Total):-suma_encendidos(L,Con), Total is Con + H.
+
+% regla que usaremos para, como bien dice su nombre, sumar elementos en
+% una lista
+suma_lista([],0).
+suma_lista([H|L],Total):-suma_lista(L,Con), Total is Con + H.
 
 % regla para devolver el total de consumo de todos los elementos
 % encendidos
-get_total_consumo(Total):- get_consumo_encendidos(Consumos),suma_encendidos(Consumos,Total).
+get_total_consumo(Total):- get_consumo_encendidos(Consumos),suma_lista(Consumos,Total).
 
 % calculo del consumo mensual de agua estimado
 % segun la cantidad de personas que habiten la casa.
@@ -422,20 +425,20 @@ posicion_sol_tiempo(16,norte,30).
 posicion_sol_tiempo(17,norte,20).
 posicion_sol_tiempo(18,norte,15).
 
-nuevo_panel(Nombre,Orientacion,Angulo,Energia):-atomic(Nombre),atomic(Orientacion), integer(Angulo),
-    not(panel_solar(Nombre,_,_)),
+nuevo_panel(Nombre,Orientacion,Angulo,Energia):-atom(Nombre),atom(Orientacion), integer(Angulo),integer(Energia),
+    not(panel_solar(Nombre,_,_,_)),
     (Angulo >= 0 , Angulo =< 180),assertz(panel_solar(Nombre,Orientacion,Angulo,Energia)),!.
 
-quitar_panel(Nombre):-atomic(Nombre),
+quitar_panel(Nombre):-atom(Nombre),
     panel_solar(Nombre,_,_,_),retract(panel_solar(Nombre,_,_,_)).
 
 ajustar_panel(Nombre,Angulo):-
     panel_solar(Nombre,X,_,Energia),retract(panel_solar(Nombre,X,_,_)),
     assertz(panel_solar(Nombre,X,Angulo,Energia)).
 
-cambiar_orientacion_panel(Nombre,Orientacion):-
-    panel_solar(Nombre,X,Angulo,_),retract(panel_solar(Nombre,_,_,_)),
-    assertz(panel_solar(Nombre,X,Angulo,Orientacion)).
+cambiar_orientacion_panel(Nombre,Orientacion):- atom(Nombre),atom(Orientacion),
+    panel_solar(Nombre,_,Angulo,Energia),retract(panel_solar(Nombre,_,_,_)),
+    assertz(panel_solar(Nombre,Orientacion,Angulo,Energia)).
 
 % Se quiere generar una sugerencia para cada panel para dar el mejor
 % angulo con respecto al sol de manera que quede perpendicular a este.
@@ -451,9 +454,9 @@ sugerencia_posicion_perpendicular_panel(Nombre,Posicion):-panel_solar(Nombre,nor
     PosPerpend is P - 90,
     abs(PosPerpend, AbsPosPerpend),
     AbsPosPerpend = Angulo,
-    Posicion = "Este panel ya esta en su angulo optimo",!,fail.
+    Posicion = "Estos paneles ya estan en su angulo optimo",!,fail.
 
-sugerencia_posicion_perpendicular_panel(Nombre,Posicion):-panel_solar(Nombre,norte,_),
+sugerencia_posicion_perpendicular_panel(Nombre,Posicion):-panel_solar(Nombre,norte,_,_),
     horaDiaActual(Hora),posicion_sol_tiempo(Hora,norte,P),
     PosPerpend is P - 90,
     abs(PosPerpend, AbsPosPerpend),
@@ -464,7 +467,7 @@ sugerencia_posicion_perpendicular_panel(Nombre,Posicion):- panel_solar(Nombre,su
     horaDiaActual(Hora),posicion_sol_tiempo(Hora,sur,P), PosPerpend is P - 90,
     abs(PosPerpend, AbsPosPerpend),
     AbsPosPerpend = Angulo,
-    Posicion =  "Este panel ya esta en su angulo optimo",!,fail.
+    Posicion =  "Estos paneles ya estan en su angulo optimo",!,fail.
 
 sugerencia_posicion_perpendicular_panel(Nombre,Posicion):- panel_solar(Nombre,sur,_,_),
     horaDiaActual(Hora),posicion_sol_tiempo(Hora,sur,P), PosPerpend is P - 90,
@@ -473,19 +476,18 @@ sugerencia_posicion_perpendicular_panel(Nombre,Posicion):- panel_solar(Nombre,su
 
 
 sugerencia_posicion_perpendicular_panel(_,Posicion):-
-    Posicion = "Este panel no detecta sol, asi que no hay un angulo recomendado",!,fail.
+    Posicion = "Estos paneles no detectan sol, asi que no hay un angulo recomendado",!.
 
 ajustar_paneles_automaticamente([]):-!.
-ajustar_paneles_automaticamente([H|L]):-sugerencia_posicion_perpendicular_panel(H,Recomendacion),ajustar_panel(H,Recomendacion),ajustar_paneles_automaticamente(L).
+ajustar_paneles_automaticamente([H|L]):-sugerencia_posicion_perpendicular_panel(H,Recomendacion),integer(Recomendacion),ajustar_panel(H,Recomendacion),ajustar_paneles_automaticamente(L).
 ajustar_paneles_automaticamente([_|L]):-ajustar_paneles_automaticamente(L).
 
 optimizar_paneles():-
-    findall(Panel,panel_solar(Panel,_,_),Paneles),ajustar_paneles_automaticamente(Paneles),!.
+    findall(Panel,panel_solar(Panel,_,_,_),Paneles),ajustar_paneles_automaticamente(Paneles),!.
 
+%Queremos saber la energia total generada por todos los paneles:
 
-
-
-
+total_energia_generada(Total):-findall(Energia,panel_solar(_,_,_,Energia),Generado),suma_lista(Generado,Total).
 
 
 

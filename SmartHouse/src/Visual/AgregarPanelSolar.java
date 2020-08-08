@@ -76,7 +76,7 @@ public class AgregarPanelSolar extends JDialog {
 				JButton okButton = new JButton("OK");
 				okButton.addActionListener(new ActionListener() {
 					public void actionPerformed(ActionEvent arg0) {
-						casa.addPanel(txtNombre.getText(), cmbOrientacion.getToolTipText(), spnEnergia.getValue().toString());
+						casa.addPanel(txtNombre.getText(), cmbOrientacion.getSelectedItem().toString(), spnEnergia.getValue().toString());
 						dispose();
 					}
 				});

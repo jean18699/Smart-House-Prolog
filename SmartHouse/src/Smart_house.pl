@@ -1,4 +1,4 @@
-/*============================MODULO DE SEGURIDAD===================*/
+ /*============================MODULO DE SEGURIDAD===================*/
 
 % El sistema experto recibirá información de sensores de movimiento, y de
 % otros tipos, y será alimentado con protocolos de seguridad para
@@ -192,35 +192,55 @@ apagar(Electronico):-
     retract(encendido(Electronico)), assertz(apagado(Electronico)).
 
 get_consumo_encendidos(Consumos):-findall(Consumo, (consumo(Electronico,Consumo),encendido(Electronico)),Consumos).
-suma_encendidos([],0).
-suma_encendidos([H|L],Total):-suma_encendidos(L,Con), Total is Con + H.
+
+% regla que usaremos para, como bien dice su nombre, sumar elementos en
+% una lista
+suma_lista([],0).
+suma_lista([H|L],Total):-suma_lista(L,Con), Total is Con + H.
 
 % regla para devolver el total de consumo de todos los elementos
 % encendidos
-get_total_consumo(Total):- get_consumo_encendidos(Consumos),suma_encendidos(Consumos,Total).
+get_total_consumo(Total):- get_consumo_encendidos(Consumos),suma_lista(Consumos,Total).
 
+% calculo del consumo mensual de agua estimado
+% segun la cantidad de personas que habiten la casa.
 
-%llaves de agua de la casa
-nueva_llave(Nombre):-
-    not(llave(Nombre)),
-    assertz(llave(Nombre)),
-    assertz(llave_cerrada(Nombre)).
+% Se investigo lo siguiente:
 
-quitar_llave(Nombre):-
-    llave(Nombre),!,
-    retract(llave(Nombre)),!,
-    (llave_cerrada(Nombre), retract(llave_cerrada(Nombre)));
-    (llave_abierta(Nombre), retract(llave_abierta(Nombre))).
+%1 m3 = 1.000 litros
+%1 litro = 4 vasos llenos
+%1 m3 = 4.000 vasos.
 
-abrir_llave(Nombre):-
-    llave(Nombre),
-    not(llave_abierta(llave)),
-    retract(llave_cerrada(Nombre)),assert(llave_abierta(llave)).
+%El consumo promedio mensual de agua por
+% persona es de máximo 4 m3. Multiplica este valor por la cantidad de
+% personas que viven en tu casa y obtendrás el consumo promedio mensual
+% del hogar.
 
-cerrar_llave(Nombre):-
-    llave(Nombre),
-    llave_abierta(llave),
-    retract(llave_abierta(Nombre)),assert(llave_cerrada(llave)).
+get_consumo_total_agua(Total):- var(Total),
+    get_miembros(Miembros),length(Miembros,Cant),
+    Total is Cant * 4000. %quiero m3 en litros, asi que 4 x 1000 litros = 4000 litros promedio por persona
+
+% Ahora queremos saber el costo de agua en dolares segun los litros, y
+% para esto primero lo transformamos a galones internacionales o
+% estadounidenes:
+
+%1 galon internacional = 3,785 litros
+%1 litro USA = 0.2642 galones
+
+%Entonces la formula: TotalLitros * 0.2642.
+
+litro_a_galon(Litros,Galones):- (integer(Litros);float(Litros)),
+    Galones is Litros * 0.2642,!.
+
+% en USA 4.70$ por 1000 galones. Asi que con las funcion creada de litro
+% a galon obtendre los galones, saco el piso en el caso de que salga
+% algun valor como 1215 galones para obtener 1000 galones exactos y
+% multiplicarlos por 4.70 dolares.
+
+get_costos_agua(Costo):-
+    get_consumo_total_agua(Total),litro_a_galon(Total,Galones),
+    floor(Galones,G), Costo is 4.62 * G.
+
 
 
 % Agregando configuracion de dispositivos que reaccionen a si hay
@@ -314,7 +334,6 @@ alerta_electronicos():-not(modo_visita), get_miembros(Miembros), todos_salieron(
 
 % Conocer el momento en el que se encuentra el dia. Asi se podra tambien
 % controlar los dispositivos:
-:-dynamic horaDia/1.
 :-dynamic horaDiaActual/1.
 :-dynamic temporizado/2. %hecho que recibe un electronico y un numero que indica la hora a la que quieres que se apague
 
@@ -378,7 +397,99 @@ nueva_temperatura(Temp):-integer(Temp),
 regular_temperatura():-
     get_miembros(Miembros), todos_dormidos(Miembros),
     nueva_temperatura(20),!.
- 
+
+%De lo contrario, se regula la temperatura a 17 grados.
+regular_temperatura():- nueva_temperatura(17).
+
+
+
+%FUENTES DE ENERGIA RENOVABLE
+
+% La mas comun son los paneles solares por lo que solo se usara esa. La
+% casa tendra un modo indique cuando se quiere usar las fuentes
+% renovables o no y dara sugerencias.
+
+:-dynamic panel_solar/4. %panel_solar(nombre,orientacion,angulo,energia producida).
+posicion_sol_tiempo(6,sur,15). %hora, orientacion, angulo
+posicion_sol_tiempo(7,sur,20).
+posicion_sol_tiempo(8,sur,30).
+posicion_sol_tiempo(9,sur,45).
+posicion_sol_tiempo(10,sur,60).
+posicion_sol_tiempo(11,sur,75).
+posicion_sol_tiempo(12,sur,90).
+posicion_sol_tiempo(12,norte,90).
+posicion_sol_tiempo(13,norte,75).
+posicion_sol_tiempo(14,norte,60).
+posicion_sol_tiempo(15,norte,45).
+posicion_sol_tiempo(16,norte,30).
+posicion_sol_tiempo(17,norte,20).
+posicion_sol_tiempo(18,norte,15).
+
+nuevo_panel(Nombre,Orientacion,Angulo,Energia):-atom(Nombre),atom(Orientacion), integer(Angulo),integer(Energia),
+    not(panel_solar(Nombre,_,_,_)),
+    (Angulo >= 0 , Angulo =< 180),assertz(panel_solar(Nombre,Orientacion,Angulo,Energia)),!.
+
+quitar_panel(Nombre):-atom(Nombre),
+    panel_solar(Nombre,_,_,_),retract(panel_solar(Nombre,_,_,_)).
+
+ajustar_panel(Nombre,Angulo):-
+    panel_solar(Nombre,X,_,Energia),retract(panel_solar(Nombre,X,_,_)),
+    assertz(panel_solar(Nombre,X,Angulo,Energia)).
+
+cambiar_orientacion_panel(Nombre,Orientacion):- atom(Nombre),atom(Orientacion),
+    panel_solar(Nombre,_,Angulo,Energia),retract(panel_solar(Nombre,_,_,_)),
+    assertz(panel_solar(Nombre,Orientacion,Angulo,Energia)).
+
+% Se quiere generar una sugerencia para cada panel para dar el mejor
+% angulo con respecto al sol de manera que quede perpendicular a este.
+
+get_posicion_sol(Posicion):-
+    horaDiaActual(Hora),posicion_sol_tiempo(Hora,_,Posicion).
+
+% A estos hechos les ingreso un panel y me devolvera la mejor posicion
+% para que sea perpendicular con respecto al sol, ya sea un panel con
+% orientacion norte o sur
+sugerencia_posicion_perpendicular_panel(Nombre,Posicion):-panel_solar(Nombre,norte,Angulo,_),
+    horaDiaActual(Hora),posicion_sol_tiempo(Hora,norte,P),
+    PosPerpend is P - 90,
+    abs(PosPerpend, AbsPosPerpend),
+    AbsPosPerpend = Angulo,
+    Posicion = "Estos paneles ya estan en su angulo optimo",!,fail.
+
+sugerencia_posicion_perpendicular_panel(Nombre,Posicion):-panel_solar(Nombre,norte,_,_),
+    horaDiaActual(Hora),posicion_sol_tiempo(Hora,norte,P),
+    PosPerpend is P - 90,
+    abs(PosPerpend, AbsPosPerpend),
+    Posicion = AbsPosPerpend,!.
+
+
+sugerencia_posicion_perpendicular_panel(Nombre,Posicion):- panel_solar(Nombre,sur,Angulo,_),
+    horaDiaActual(Hora),posicion_sol_tiempo(Hora,sur,P), PosPerpend is P - 90,
+    abs(PosPerpend, AbsPosPerpend),
+    AbsPosPerpend = Angulo,
+    Posicion =  "Estos paneles ya estan en su angulo optimo",!,fail.
+
+sugerencia_posicion_perpendicular_panel(Nombre,Posicion):- panel_solar(Nombre,sur,_,_),
+    horaDiaActual(Hora),posicion_sol_tiempo(Hora,sur,P), PosPerpend is P - 90,
+    abs(PosPerpend, AbsPosPerpend),
+    Posicion = AbsPosPerpend,!.
+
+
+sugerencia_posicion_perpendicular_panel(_,Posicion):-
+    Posicion = "Estos paneles no detectan sol, asi que no hay un angulo recomendado",!.
+
+ajustar_paneles_automaticamente([]):-!.
+ajustar_paneles_automaticamente([H|L]):-sugerencia_posicion_perpendicular_panel(H,Recomendacion),integer(Recomendacion),ajustar_panel(H,Recomendacion),ajustar_paneles_automaticamente(L).
+ajustar_paneles_automaticamente([_|L]):-ajustar_paneles_automaticamente(L).
+
+optimizar_paneles():-
+    findall(Panel,panel_solar(Panel,_,_,_),Paneles),ajustar_paneles_automaticamente(Paneles),!.
+
+%Queremos saber la energia total generada por todos los paneles:
+
+total_energia_generada(Total):-findall(Energia,panel_solar(_,_,_,Energia),Generado),suma_lista(Generado,Total).
+
+
 
 
 
