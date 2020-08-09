@@ -100,6 +100,7 @@ public class Principal extends JFrame {
 	JLabel txtEnergiaTotalProducida;
 	JLabel txtSugerenciaPanelNorte;
 	JLabel txtSugerenciaPanelSur;
+	JLabel txtAvisoConsumo;
 	
 	
 	/**
@@ -180,6 +181,10 @@ public class Principal extends JFrame {
 				addMiembro.setModal(true);
 				addMiembro.setVisible(true);
 				casa.getMiembros(modelListaMiembros);
+				txtTotalCostoAgua.setText(casa.getFacturaAgua()+"$");
+				//txtLitros.setText(casa.imprimir("get_consumo_total_agua", "Litro"));
+				
+			
 				
 			}
 		});
@@ -530,6 +535,8 @@ public class Principal extends JFrame {
         		{
         			casa.nuevoQuery("quitar_miembro", miembro);
         			casa.getMiembros(modelListaMiembros);
+    				txtTotalCostoAgua.setText(casa.getFacturaAgua()+"$");
+    				//txtLitros.setText(casa.imprimir("get_consumo_total_agua", "Litro"));
         		}
         		
         	}
@@ -547,6 +554,7 @@ public class Principal extends JFrame {
         	public void actionPerformed(ActionEvent e) {
         		casa.nuevoQuery("encender",electronico);
         		txtConsumoTotal.setText(String.valueOf(casa.getConsumoElectronicoTotal()));
+        		txtAvisoConsumo.setText(casa.getAvisoConsumo());
         	}
         });
         radElectroEncendido.setEnabled(false);
@@ -556,6 +564,7 @@ public class Principal extends JFrame {
         	public void actionPerformed(ActionEvent e) {
         		casa.nuevoQuery("apagar",electronico);
         		txtConsumoTotal.setText(String.valueOf(casa.getConsumoElectronicoTotal()));
+        		txtAvisoConsumo.setText(casa.getAvisoConsumo());
         	}
         });
         radElectroApagado.setEnabled(false);
@@ -780,6 +789,7 @@ public class Principal extends JFrame {
         						casa.nuevoQuery("quitar_electronico", electronico);
         						casa.getElectronicos(modelListaElectronicos);
         						casa.getElectronicosZona(modelListaElectronicosZona, electronicoZona);
+        						txtAvisoConsumo.setText(casa.getAvisoConsumo());
         					}
         				});
         				button_1.setBounds(109, 433, 38, 23);
@@ -824,6 +834,7 @@ public class Principal extends JFrame {
                 				addPanel.setVisible(true);
                 				casa.getPaneles(modelListaPaneles);
                 				txtEnergiaTotalProducida.setText(casa.getEnergiaTotalProducida());
+                				txtAvisoConsumo.setText(casa.getAvisoConsumo());
         					}
         				});
         				btnAgregarPanel.setBounds(10, 644, 89, 23);
@@ -835,6 +846,7 @@ public class Principal extends JFrame {
         						casa.nuevoQuery("quitar_panel",panelSelected);
         						casa.getPaneles(modelListaPaneles);
         						txtEnergiaTotalProducida.setText(casa.getEnergiaTotalProducida());
+        						txtAvisoConsumo.setText(casa.getAvisoConsumo());
         					}
         				});
         				btnQuitarPanel.setBounds(107, 644, 42, 23);
@@ -906,6 +918,20 @@ public class Principal extends JFrame {
         				lblHoraDia.add(checkBox);
         				
         				JCheckBox chckbxModoEnergiaRenovable = new JCheckBox("Modo energia renovable");
+        				chckbxModoEnergiaRenovable.addActionListener(new ActionListener() {
+        					public void actionPerformed(ActionEvent arg0) {
+        						if(chckbxModoEnergiaRenovable.isSelected())
+        						{
+        							casa.nuevoQuery("usar_paneles", "on");
+        							txtAvisoConsumo.setText(casa.getAvisoConsumo());
+        						}else
+        						{
+        							casa.nuevoQuery("usar_paneles", "off");
+        							txtAvisoConsumo.setText(casa.getAvisoConsumo());
+        						}
+        						
+        					}
+        				});
         				chckbxModoEnergiaRenovable.setBounds(116, 6, 147, 23);
         				lblHoraDia.add(chckbxModoEnergiaRenovable);
         				
@@ -1101,7 +1127,7 @@ public class Principal extends JFrame {
         				
         				JPanel panel_4 = new JPanel();
         				panel_4.setBorder(new TitledBorder(UIManager.getBorder("TitledBorder.border"), "Consumo de agua", TitledBorder.LEADING, TitledBorder.TOP, null, new Color(0, 0, 0)));
-        				panel_4.setBounds(376, 212, 428, 108);
+        				panel_4.setBounds(376, 212, 622, 108);
         				MainPanel.add(panel_4);
         				panel_4.setLayout(null);
         				
@@ -1110,7 +1136,7 @@ public class Principal extends JFrame {
         				panel_4.add(lblNewLabel_7);
         				
         				txtLitros = new JLabel("Total");
-        				txtLitros.setBounds(358, 39, 46, 14);
+        				txtLitros.setBounds(358, 39, 127, 14);
         				panel_4.add(txtLitros);
         				
         				JLabel lblNewLabel_8 = new JLabel("Costo mensual estimado de agua:");
@@ -1126,7 +1152,7 @@ public class Principal extends JFrame {
         				panel_4.add(lblNewLabel_9);
         				
         				txtTotalGalones = new JLabel("Total");
-        				txtTotalGalones.setBounds(368, 58, 46, 14);
+        				txtTotalGalones.setBounds(368, 58, 117, 14);
         				panel_4.add(txtTotalGalones);
         				
         				JPanel panel_2 = new JPanel();
@@ -1154,18 +1180,23 @@ public class Principal extends JFrame {
         				txtSugerenciaPanelSur = new JLabel("");
         				txtSugerenciaPanelSur.setBounds(216, 48, 396, 14);
         				panel_2.add(txtSugerenciaPanelSur);
-        btnAgregarElectronico.addActionListener(new ActionListener() {
-        	public void actionPerformed(ActionEvent arg0) {
-        		AgregarElectronico addElectronico = new AgregarElectronico(casa);
-        		addElectronico.setLocationRelativeTo(null);
-        		addElectronico.setModal(true);
-        		addElectronico.setVisible(true);
-				casa.getElectronicos(modelListaElectronicos);
-				txtConsumoTotal.setText(String.valueOf(casa.getConsumoElectronicoTotal()));
-				
+        				
+        				txtAvisoConsumo = new JLabel("'Ningun problema de energia'");
+        				txtAvisoConsumo.setBounds(105, 73, 496, 14);
+        				panel_2.add(txtAvisoConsumo);
+        
+        				btnAgregarElectronico.addActionListener(new ActionListener() {
+        					public void actionPerformed(ActionEvent arg0) {
+					        		AgregarElectronico addElectronico = new AgregarElectronico(casa);
+					        		addElectronico.setLocationRelativeTo(null);
+					        		addElectronico.setModal(true);
+					        		addElectronico.setVisible(true);
+									casa.getElectronicos(modelListaElectronicos);
+									txtConsumoTotal.setText(String.valueOf(casa.getConsumoElectronicoTotal()));
+									txtAvisoConsumo.setText(casa.getAvisoConsumo());
 
-        	}
-        });
+        					}
+        				});
         
         DefaultListCellRenderer renderer = (DefaultListCellRenderer)listMiembros.getCellRenderer();
 		renderer.setHorizontalAlignment(JLabel.CENTER);

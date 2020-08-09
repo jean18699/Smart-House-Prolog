@@ -239,9 +239,7 @@ litro_a_galon(Litros,Galones):- (integer(Litros);float(Litros)),
 
 get_costos_agua(Costo):-
     get_consumo_total_agua(Total),litro_a_galon(Total,Galones),
-    floor(Galones,G), Costo is 4.62 * G.
-
-
+    CantidadMilGalones is Galones / 1000, floor(CantidadMilGalones,G), Costo is 4.70 * G.
 
 % Agregando configuracion de dispositivos que reaccionen a si hay
 % personas o no en la habitacion

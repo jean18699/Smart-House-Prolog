@@ -388,6 +388,51 @@ public class Casa {
 
 	}
 	
+	public String getAvisoConsumo()
+	{
+		String queryText = String.format("sugerencia_energia_utilizada(Sugerencia)");
+		q = new Query(queryText);	
+		
+		Map<String, Term> res = q.getSolution();
+		
+		return res.get("Sugerencia").toString();
+
+	}
+	
+	public String getFacturaAgua()
+	{
+		String queryText = String.format("get_costos_agua(Costo)");
+		q = new Query(queryText);	
+		
+		Map<String, Term> res = q.getSolution();
+		
+		
+		String factura = res.get("Costo").toString();
+
+
+		return factura;
+
+	}
+	
+	public String getLitrosTotales()
+	{
+		String queryText = String.format("total_energia_generada(X)");
+		q = new Query(queryText);	
+			
+	
+		if(q.hasSolution())
+		{
+			return q.getSolution().get("X").toString();
+			
+		}else
+		{
+			return null;
+		}
+		
+		
+
+	}
+	
 	
 	
 	public void addPuerta(String nombre)

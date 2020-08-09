@@ -239,9 +239,7 @@ litro_a_galon(Litros,Galones):- (integer(Litros);float(Litros)),
 
 get_costos_agua(Costo):-
     get_consumo_total_agua(Total),litro_a_galon(Total,Galones),
-    floor(Galones,G), Costo is 4.62 * G.
-
-
+    CantidadMilGalones is Galones / 1000, floor(CantidadMilGalones,G), Costo is 4.70 * G.
 
 % Agregando configuracion de dispositivos que reaccionen a si hay
 % personas o no en la habitacion
@@ -249,27 +247,28 @@ get_costos_agua(Costo):-
 :-dynamic tiene_electronico/2.
 :-dynamic tiene_miembro/2.
 
-nuevo_lugar(Nombre):-
+nuevo_lugar(Nombre):- atom(Nombre),
     not(zonaCasa(Nombre)),assertz(zonaCasa(Nombre)).
 
 
-quitar_lugar(Nombre):-
+quitar_lugar(Nombre):- atom(Nombre),
     zonaCasa(Nombre),retract(zonaCasa(Nombre)),
     (tiene_miembro(Nombre,_), retractall(tiene_miembro(Nombre,_)));
     (tiene_electronico(Nombre,_),retractall(tiene_electronico(Nombre,_))).
 
 
-agregar_electronico_lugar(Electro,Lugar):-
+agregar_electronico_lugar(Electro,Lugar):- atom(Electro), atom(Lugar),
     electronico(Electro),zonaCasa(Lugar),
     not(tiene_electronico(_,Electro)),
     assertz(tiene_electronico(Lugar,Electro)).
 
-quitar_electronico_lugar(Electro,Lugar):-
+quitar_electronico_lugar(Electro,Lugar):- atom(Electro), atom(Lugar),
     electronico(Electro),zonaCasa(Lugar),
     tiene_electronico(Lugar,Electro),
     retract(tiene_electronico(Lugar,Electro)).
 
-get_electronicos_lugar(Lugar,Electronicos):-findall(Electro,tiene_electronico(Lugar,Electro),Electronicos).
+get_electronicos_lugar(Lugar,Electronicos):- atom(Lugar),var(Electronicos),
+    findall(Electro,tiene_electronico(Lugar,Electro),Electronicos).
 
 tiene_electronicos(Lugar):-
     get_electronicos_lugar(Lugar,Electronicos),
@@ -410,6 +409,12 @@ regular_temperatura():- nueva_temperatura(17).
 % renovables o no y dara sugerencias.
 
 :-dynamic panel_solar/4. %panel_solar(nombre,orientacion,angulo,energia producida).
+:-dynamic modo_renovable/0. %activar el uso de los paneles.
+
+usar_paneles(on):-not(modo_renovable),assertz(modo_renovable),!.
+usar_paneles(off):-modo_renovable,retract(modo_renovable).
+
+
 posicion_sol_tiempo(6,sur,15). %hora, orientacion, angulo
 posicion_sol_tiempo(7,sur,20).
 posicion_sol_tiempo(8,sur,30).
@@ -491,5 +496,18 @@ total_energia_generada(Total):-findall(Energia,panel_solar(_,_,_,Energia),Genera
 
 
 
+% Queremos alertar en el modo de energia renovable si el consumo de
+% electronicos sobrepasa a lo generado
+
+sugerencia_energia_utilizada(Sugerencia):-modo_renovable,var(Sugerencia),
+    get_total_consumo(Total),total_energia_generada(Energia),
+    Energia < Total, Sugerencia = "Los paneles no pueden suplir el consumo actual de los electronicos",!.
+
+sugerencia_energia_utilizada(Sugerencia):-modo_renovable,var(Sugerencia),
+    get_total_consumo(Total),total_energia_generada(Energia),
+    Energia >= Total, Sugerencia = "Ningun problema de energia",!.
+
+sugerencia_energia_utilizada(Sugerencia):- var(Sugerencia),
+     Sugerencia = "Ningun problema de energia".
 
 
