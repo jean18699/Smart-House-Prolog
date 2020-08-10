@@ -48,6 +48,7 @@ import javax.swing.border.EtchedBorder;
 import java.awt.Window.Type;
 import javax.swing.JComboBox;
 import javax.swing.DefaultComboBoxModel;
+import javax.swing.JTextField;
 
 
 public class Principal extends JFrame {
@@ -60,12 +61,14 @@ public class Principal extends JFrame {
 	private DefaultListModel<String> modelListaMiembrosZona;
 	private DefaultListModel<String> modelListaElectronicosZona;
 	private DefaultListModel<String> modelListaPaneles;
+	private DefaultListModel<String> modelListaBasureros;
 	private String miembro;
 	private String puerta;
 	private String electronico;
 	private String zona;
 	private String miembroZona;
 	private String electronicoZona;
+	private String basurero;
 	String panelSelected;
 	String horaDiaActual;
 	JRadioButton radFamiliarDurmiendo;
@@ -101,6 +104,15 @@ public class Principal extends JFrame {
 	JLabel txtSugerenciaPanelNorte;
 	JLabel txtSugerenciaPanelSur;
 	JLabel txtAvisoConsumo;
+	JList listZafacones;
+	JLabel txtCapacidadZafacon;
+	JLabel txtBasuraAlmacenada;
+	JLabel txtSugerenciaBasura;
+	JSpinner spnVolumenBasura;
+	JButton btnAgregarBasura;
+	JButton btnAgregarBasurero;
+	JButton btnQuitarZafacon;
+	private JTextField txtNombreBasura;
 	
 	
 	/**
@@ -172,6 +184,7 @@ public class Principal extends JFrame {
 		modelListaZonas = new DefaultListModel<String>();
 		modelListaElectronicosZona = new DefaultListModel<String>();
 		modelListaPaneles = new DefaultListModel<String>();
+		modelListaBasureros = new DefaultListModel<String>();
 		
 		JButton btnAgregarMiembro = new JButton("Agregar");
 		btnAgregarMiembro.addActionListener(new ActionListener() {
@@ -1127,7 +1140,7 @@ public class Principal extends JFrame {
         				
         				JPanel panel_4 = new JPanel();
         				panel_4.setBorder(new TitledBorder(UIManager.getBorder("TitledBorder.border"), "Consumo de agua", TitledBorder.LEADING, TitledBorder.TOP, null, new Color(0, 0, 0)));
-        				panel_4.setBounds(376, 212, 622, 108);
+        				panel_4.setBounds(376, 441, 622, 108);
         				MainPanel.add(panel_4);
         				panel_4.setLayout(null);
         				
@@ -1184,6 +1197,136 @@ public class Principal extends JFrame {
         				txtAvisoConsumo = new JLabel("'Ningun problema de energia'");
         				txtAvisoConsumo.setBounds(105, 73, 496, 14);
         				panel_2.add(txtAvisoConsumo);
+        				
+        				JScrollPane scrollPane_1_1_2 = new JScrollPane();
+        				scrollPane_1_1_2.setBounds(404, 228, 135, 81);
+        				MainPanel.add(scrollPane_1_1_2);
+        				
+        				listZafacones = new JList();
+        				listZafacones.addMouseListener(new MouseAdapter() {
+        					@Override
+        					public void mouseClicked(MouseEvent arg0) {
+        						if(arg0.getClickCount() == 1)
+        						{
+        							int index =listZafacones.locationToIndex(arg0.getPoint());
+        							basurero = (String) listZafacones.getModel().getElementAt(index);
+        							
+        							if(basurero!=null)
+        							{
+        								System.out.println(basurero);
+        								txtCapacidadZafacon.setText(casa.getCapacidadBasurero(basurero));
+        								txtBasuraAlmacenada.setText(casa.totalAlmacenadoBasurero(basurero));
+        								txtSugerenciaBasura.setText(casa.getSugerenciaBasurero(basurero));
+        								
+        							}
+        						}
+        					}
+        				});
+        				listZafacones.setVisibleRowCount(2);
+        				listZafacones.setSelectionMode(ListSelectionModel.SINGLE_INTERVAL_SELECTION);
+        				scrollPane_1_1_2.setViewportView(listZafacones);
+        				listZafacones.setModel(modelListaBasureros);
+        				
+        				JLabel lblZafacones = new JLabel("Basureros");
+        				lblZafacones.setBounds(404, 212, 97, 14);
+        				MainPanel.add(lblZafacones);
+        				
+        				btnAgregarBasurero = new JButton("Agregar basurero");
+        				btnAgregarBasurero.addActionListener(new ActionListener() {
+        					public void actionPerformed(ActionEvent arg0) {
+        						AgregarBasurero addBasurero = new AgregarBasurero(casa);
+				        		addBasurero.setLocationRelativeTo(null);
+				        		addBasurero.setModal(true);
+				        		addBasurero.setVisible(true);
+								casa.getBasureros(modelListaBasureros);
+				        		 
+        					}
+        				});
+        				btnAgregarBasurero.setBounds(404, 320, 135, 23);
+        				MainPanel.add(btnAgregarBasurero);
+        				
+        				JLabel lblNewLabel_13 = new JLabel("Capacidad:");
+        				lblNewLabel_13.setBounds(578, 230, 68, 14);
+        				MainPanel.add(lblNewLabel_13);
+        				
+        				txtCapacidadZafacon = new JLabel("0");
+        				txtCapacidadZafacon.setBounds(640, 230, 112, 14);
+        				MainPanel.add(txtCapacidadZafacon);
+        				
+        				JLabel lblNewLabel_14 = new JLabel("Total almacenado:");
+        				lblNewLabel_14.setBounds(578, 255, 89, 14);
+        				MainPanel.add(lblNewLabel_14);
+        				
+        				txtBasuraAlmacenada = new JLabel("0");
+        				txtBasuraAlmacenada.setBounds(671, 255, 81, 14);
+        				MainPanel.add(txtBasuraAlmacenada);
+        				
+        				JLabel lblNewLabel_15 = new JLabel("Sugerencia:");
+        				lblNewLabel_15.setBounds(578, 280, 75, 14);
+        				MainPanel.add(lblNewLabel_15);
+        				
+        				txtSugerenciaBasura = new JLabel("");
+        				txtSugerenciaBasura.setBounds(640, 280, 358, 14);
+        				MainPanel.add(txtSugerenciaBasura);
+        				
+        				btnQuitarZafacon = new JButton("X");
+        				btnQuitarZafacon.addActionListener(new ActionListener() {
+        					public void actionPerformed(ActionEvent arg0) {
+        						casa.nuevoQuery("quitar_zafacon", basurero);
+        						casa.getBasureros(modelListaBasureros);
+        					}
+        				});
+        				btnQuitarZafacon.setBounds(501, 345, 38, 23);
+        				MainPanel.add(btnQuitarZafacon);
+        				
+        				spnVolumenBasura = new JSpinner();
+        				spnVolumenBasura.setModel(new SpinnerNumberModel(0, 0, 1000, 1));
+        				spnVolumenBasura.setBounds(604, 379, 53, 20);
+        				MainPanel.add(spnVolumenBasura);
+        				
+        				JLabel lblNewLabel_16 = new JLabel("Agregar basura:");
+        				lblNewLabel_16.setBounds(395, 382, 106, 14);
+        				MainPanel.add(lblNewLabel_16);
+        				
+        				btnAgregarBasura = new JButton("Agregar basura");
+        				btnAgregarBasura.addActionListener(new ActionListener() {
+        					public void actionPerformed(ActionEvent e) {
+        						if(basurero!=null)
+        						{
+        							casa.addBasura(basurero, txtNombreBasura.getText(), spnVolumenBasura.getValue().toString());
+            						txtBasuraAlmacenada.setText(casa.totalAlmacenadoBasurero(basurero));
+            						txtSugerenciaBasura.setText(casa.getSugerenciaBasurero(basurero));
+        						}
+        						
+        					}
+        				});
+        				btnAgregarBasura.setBounds(671, 378, 135, 23);
+        				MainPanel.add(btnAgregarBasura);
+        				
+        				txtNombreBasura = new JTextField();
+        				txtNombreBasura.setBounds(477, 379, 68, 20);
+        				MainPanel.add(txtNombreBasura);
+        				txtNombreBasura.setColumns(10);
+        				
+        				JLabel lblNewLabel_17 = new JLabel("Volumen:");
+        				lblNewLabel_17.setBounds(555, 382, 46, 14);
+        				MainPanel.add(lblNewLabel_17);
+        				
+        				JButton btnVaciarZafacon = new JButton("Vaciar");
+        				btnVaciarZafacon.addActionListener(new ActionListener() {
+        					public void actionPerformed(ActionEvent e) {
+        						if(basurero!=null)
+        						{
+        							casa.nuevoQuery("vaciar_zafacon", basurero);
+        							txtSugerenciaBasura.setText(casa.getSugerenciaBasurero(basurero));
+        							txtBasuraAlmacenada.setText(casa.totalAlmacenadoBasurero(basurero));
+        							
+        						}
+        						
+        					}
+        				});
+        				btnVaciarZafacon.setBounds(404, 345, 89, 23);
+        				MainPanel.add(btnVaciarZafacon);
         
         				btnAgregarElectronico.addActionListener(new ActionListener() {
         					public void actionPerformed(ActionEvent arg0) {
@@ -1215,6 +1358,9 @@ public class Principal extends JFrame {
 		
 		DefaultListCellRenderer renderer6 = (DefaultListCellRenderer)listElectronicosZona.getCellRenderer();
 		renderer6.setHorizontalAlignment(JLabel.CENTER);
+		
+		DefaultListCellRenderer renderer7 = (DefaultListCellRenderer)listZafacones.getCellRenderer();
+		renderer7.setHorizontalAlignment(JLabel.CENTER);
 		
 
 		

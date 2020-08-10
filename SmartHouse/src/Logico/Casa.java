@@ -821,10 +821,107 @@ public class Casa {
 		{
 			return null;
 		}
+			
+	}
+	
+	public boolean addBasurero(String nombre, String capacidad)
+	{
+		String queryText = String.format("nuevo_zafacon(%s,%s)",nombre,capacidad);
+		q = new Query(queryText);	
 		
+		if(q.hasSolution())
+		{
+			return true;
+		}else
+		{
+			return false;
+		}
+				
+	}
+	
+	public boolean addBasura(String basurero, String nombreBasura, String volumen)
+	{
+		String queryText = String.format("agregar_basura(%s,%s,%s)",basurero,nombreBasura,volumen);
+		q = new Query(queryText);	
 		
+		if(q.hasSolution())
+		{
+			return true;
+		}else
+		{
+			return false;
+		}
+				
+	}
+	
+	
+	public void getBasureros(DefaultListModel<String> modelListBasureros)
+	{
+		modelListBasureros.clear();
+	
+		String queryText = String.format("zafacon(X,_,_)");
+	
+		q = new Query(queryText);
 		
+		Map<String, Term>[] res = q.allSolutions();
+		
+		for(int i = 0; i < res.length; i++)
+		{
+			modelListBasureros.add(i, res[i].get("X").toString());
+		}
 		
 	}
+
+	public String getCapacidadBasurero(String basurero) {
+		
+		String queryText = String.format("zafacon(%s,Capacidad,_)",basurero);
+		q = new Query(queryText);	
+			
+	
+		if(q.hasSolution())
+		{
+			return q.getSolution().get("Capacidad").toString();
+			
+		}else
+		{
+			return null;
+		}
+	}
+	
+	public String totalAlmacenadoBasurero(String basurero) {
+		
+		String queryText = String.format("total_almacenado_zafacon(%s,Total)",basurero);
+		q = new Query(queryText);	
+			
+	
+		if(q.hasSolution())
+		{
+			return q.getSolution().get("Total").toString();
+			
+		}else
+		{
+			return null;
+		}
+	}
+
+	public String getSugerenciaBasurero(String basurero)
+	{
+		
+	
+		String queryText = String.format("alerta_basura(%s,Sugerencia)",basurero);
+	
+		q = new Query(queryText);
+		
+		if(q.hasSolution())
+		{
+			return q.getSolution().get("Sugerencia").toString();
+			
+		}else
+		{
+			return null;
+		}
+		
+	}
+
 	
 }

@@ -510,4 +510,41 @@ sugerencia_energia_utilizada(Sugerencia):-modo_renovable,var(Sugerencia),
 sugerencia_energia_utilizada(Sugerencia):- var(Sugerencia),
      Sugerencia = "Ningun problema de energia".
 
+%MANEJO DE BASURA
+
+:-dynamic zafacon/3. %el zafacon tiene nombre, volumen maximo y la lista de basura
+:-dynamic basura/3. %la basura tiene nombre, volumen y el zafacon al que pertenece
+
+
+nuevo_zafacon(Nombre,VolumenMaximo):-atom(Nombre),number(VolumenMaximo),
+    not(zafacon(Nombre,_,_)), assertz(zafacon(Nombre,VolumenMaximo,[])).
+
+quitar_zafacon(Nombre):-atom(Nombre),zafacon(Nombre,_,_),retract(zafacon(Nombre,_,_)),retractall(basura(_,_,Nombre)).
+
+total_almacenado_zafacon(NombreBasurero,Total):-atom(NombreBasurero),zafacon(NombreBasurero,_,_),
+    findall(Volumen,basura(_,Volumen,NombreBasurero),Volumenes),suma_lista(Volumenes,Total).
+
+
+agregar_basura(Zafacon,NombreBasura,Volumen):-
+    zafacon(Zafacon,VolumenMaximo,Basuras), %revisando si el zafacon existe
+    Volumen =< VolumenMaximo,
+    not(basura(NombreBasura,_,Zafacon)), %revisando si esta basura ya esta en ese zafacon
+    findall(Volumen,basura(_,Volumen,Zafacon),Volumenes), %buscando los volumenes de todas las basuras ya dentro del zafacon
+    suma_lista(Volumenes,Total),TotalCombinado is Total + Volumen,
+    TotalCombinado =< VolumenMaximo, %sumando los volumenes de las basuras que ya estan dentro del zafacon y si el total mas el de la basura que entrare no
+                                                                  %supera la capacidad, pues se agrega la basura
+    assertz(basura(NombreBasura,Volumen,Zafacon)), %
+    append(Basuras,[NombreBasura],NuevaListaBasuras),
+    retract(zafacon(Zafacon,VolumenMaximo,Basuras)),assertz(zafacon(Zafacon,VolumenMaximo,NuevaListaBasuras)).
+
+alerta_basura(NombreZafacon,Sugerencia):-atom(NombreZafacon),var(Sugerencia),
+    zafacon(NombreZafacon,VolumenMaximo,_),findall(Volumen,basura(_,Volumen,NombreZafacon),Volumenes), suma_lista(Volumenes,Total),
+    Total >= VolumenMaximo - 10,
+    Sugerencia = "Debe de de vaciar este zafacon",!.
+
+alerta_basura(NombreZafacon,Sugerencia):-atom(NombreZafacon),var(Sugerencia),
+    zafacon(NombreZafacon,VolumenMaximo,_),findall(Volumen,basura(_,Volumen,NombreZafacon),Volumenes), suma_lista(Volumenes,Total),
+    Total < VolumenMaximo - 20,
+    Sugerencia = "A este zafacon le queda espacio",!.
+
 
