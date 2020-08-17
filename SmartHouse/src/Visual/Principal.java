@@ -113,7 +113,7 @@ public class Principal extends JFrame {
 	JButton btnAgregarBasurero;
 	JButton btnQuitarZafacon;
 	private JTextField txtNombreBasura;
-	
+	JLabel txtPrecioEnergia;
 	
 	/**
 	 * Launch the application.
@@ -566,8 +566,9 @@ public class Principal extends JFrame {
         radElectroEncendido.addActionListener(new ActionListener() {
         	public void actionPerformed(ActionEvent e) {
         		casa.nuevoQuery("encender",electronico);
-        		txtConsumoTotal.setText(String.valueOf(casa.getConsumoElectronicoTotal()));
+        		txtConsumoTotal.setText(String.valueOf(casa.getConsumoElectronicoTotal() + " Kw/mes"));
         		txtAvisoConsumo.setText(casa.getAvisoConsumo());
+        		txtPrecioEnergia.setText(String.valueOf(casa.getPrecioElectricoTotal()+ " $RD"));
         	}
         });
         radElectroEncendido.setEnabled(false);
@@ -576,8 +577,9 @@ public class Principal extends JFrame {
         radElectroApagado.addActionListener(new ActionListener() {
         	public void actionPerformed(ActionEvent e) {
         		casa.nuevoQuery("apagar",electronico);
-        		txtConsumoTotal.setText(String.valueOf(casa.getConsumoElectronicoTotal()));
+        		txtConsumoTotal.setText(String.valueOf(casa.getConsumoElectronicoTotal() + " Kwh/mes"));
         		txtAvisoConsumo.setText(casa.getAvisoConsumo());
+        		txtPrecioEnergia.setText(String.valueOf(casa.getPrecioElectricoTotal()+ " $RD"));
         	}
         });
         radElectroApagado.setEnabled(false);
@@ -655,7 +657,7 @@ public class Principal extends JFrame {
 					{
 						//radPuertasAbiertas.setEnabled(true);
 						//radPuertasCerradas.setEnabled(true);
-						txtConsumo.setText(String.valueOf(casa.getConsumoElectronico(electronico)));
+						txtConsumo.setText(String.valueOf(casa.getConsumoElectronico(electronico) + " Kwh/mes"));
 						
 						btnModoAutomaticoElectronicos.setEnabled(!casa.nuevoQuery("automatico", electronico));
 						btnModoManualElectronicos.setEnabled(!casa.nuevoQuery("manual", electronico));
@@ -701,7 +703,7 @@ public class Principal extends JFrame {
         MainPanel.add(lblConsumo);
         
         txtConsumo = new JLabel("consumido");
-        txtConsumo.setBounds(207, 425, 62, 14);
+        txtConsumo.setBounds(207, 425, 150, 14);
         MainPanel.add(txtConsumo);
         
         JLabel lblTotalConsumido = new JLabel("Total consumido:");
@@ -709,7 +711,7 @@ public class Principal extends JFrame {
         MainPanel.add(lblTotalConsumido);
         
         txtConsumoTotal = new JLabel("total");
-        txtConsumoTotal.setBounds(242, 441, 46, 14);
+        txtConsumoTotal.setBounds(242, 441, 115, 14);
         MainPanel.add(txtConsumoTotal);
         
     	
@@ -846,7 +848,7 @@ public class Principal extends JFrame {
                 				addPanel.setModal(true);
                 				addPanel.setVisible(true);
                 				casa.getPaneles(modelListaPaneles);
-                				txtEnergiaTotalProducida.setText(casa.getEnergiaTotalProducida());
+                				txtEnergiaTotalProducida.setText(casa.getEnergiaTotalProducida()+ " Kwh");
                 				txtAvisoConsumo.setText(casa.getAvisoConsumo());
         					}
         				});
@@ -909,7 +911,7 @@ public class Principal extends JFrame {
         				lblHoraDia.add(lblNewLabel_12);
         				
         				txtEnergiaTotalProducida = new JLabel("0");
-        				txtEnergiaTotalProducida.setBounds(128, 678, 65, 14);
+        				txtEnergiaTotalProducida.setBounds(128, 678, 238, 14);
         				lblHoraDia.add(txtEnergiaTotalProducida);
         				
         				JLabel lblNewLabel_11_1 = new JLabel("Angulo actual del panel:");
@@ -1140,37 +1142,37 @@ public class Principal extends JFrame {
         				
         				JPanel panel_4 = new JPanel();
         				panel_4.setBorder(new TitledBorder(UIManager.getBorder("TitledBorder.border"), "Consumo de agua", TitledBorder.LEADING, TitledBorder.TOP, null, new Color(0, 0, 0)));
-        				panel_4.setBounds(376, 441, 622, 108);
+        				panel_4.setBounds(376, 425, 622, 87);
         				MainPanel.add(panel_4);
         				panel_4.setLayout(null);
         				
         				JLabel lblNewLabel_7 = new JLabel("Cantidad estimada de agua a consumir por todos los miembros en litros:");
-        				lblNewLabel_7.setBounds(10, 39, 352, 14);
+        				lblNewLabel_7.setBounds(10, 22, 352, 14);
         				panel_4.add(lblNewLabel_7);
         				
         				txtLitros = new JLabel("Total");
-        				txtLitros.setBounds(358, 39, 127, 14);
+        				txtLitros.setBounds(358, 22, 127, 14);
         				panel_4.add(txtLitros);
         				
         				JLabel lblNewLabel_8 = new JLabel("Costo mensual estimado de agua:");
-        				lblNewLabel_8.setBounds(10, 78, 164, 14);
+        				lblNewLabel_8.setBounds(10, 62, 164, 14);
         				panel_4.add(lblNewLabel_8);
         				
         				txtTotalCostoAgua = new JLabel("Total");
-        				txtTotalCostoAgua.setBounds(174, 78, 46, 14);
+        				txtTotalCostoAgua.setBounds(174, 62, 303, 14);
         				panel_4.add(txtTotalCostoAgua);
         				
         				JLabel lblNewLabel_9 = new JLabel("Cantidad estimada de agua a consumir por todos los miembros en galones:");
-        				lblNewLabel_9.setBounds(10, 58, 363, 14);
+        				lblNewLabel_9.setBounds(10, 42, 363, 14);
         				panel_4.add(lblNewLabel_9);
         				
         				txtTotalGalones = new JLabel("Total");
-        				txtTotalGalones.setBounds(368, 58, 117, 14);
+        				txtTotalGalones.setBounds(368, 42, 117, 14);
         				panel_4.add(txtTotalGalones);
         				
         				JPanel panel_2 = new JPanel();
         				panel_2.setBorder(new TitledBorder(null, "Informacion de energia", TitledBorder.LEADING, TitledBorder.TOP, null, null));
-        				panel_2.setBounds(376, 569, 622, 94);
+        				panel_2.setBounds(376, 523, 622, 118);
         				MainPanel.add(panel_2);
         				panel_2.setLayout(null);
         				
@@ -1198,9 +1200,26 @@ public class Principal extends JFrame {
         				txtAvisoConsumo.setBounds(105, 73, 496, 14);
         				panel_2.add(txtAvisoConsumo);
         				
+        				JLabel lblNewLabel_18 = new JLabel("Facturacion de energia estimada de este mes:");
+        				lblNewLabel_18.setBounds(10, 93, 221, 14);
+        				panel_2.add(lblNewLabel_18);
+        				
+        				txtPrecioEnergia = new JLabel("0");
+        				txtPrecioEnergia.setBounds(236, 93, 318, 14);
+        				panel_2.add(txtPrecioEnergia);
+        				
+        				JPanel panel_5 = new JPanel();
+        				panel_5.setBounds(376, 167, 632, 244);
+        				MainPanel.add(panel_5);
+        				panel_5.setLayout(null);
+        				
+        				JLabel lblZafacones = new JLabel("Basureros");
+        				lblZafacones.setBounds(28, 11, 97, 23);
+        				panel_5.add(lblZafacones);
+        				
         				JScrollPane scrollPane_1_1_2 = new JScrollPane();
-        				scrollPane_1_1_2.setBounds(404, 228, 135, 81);
-        				MainPanel.add(scrollPane_1_1_2);
+        				scrollPane_1_1_2.setBounds(28, 35, 135, 81);
+        				panel_5.add(scrollPane_1_1_2);
         				
         				listZafacones = new JList();
         				listZafacones.addMouseListener(new MouseAdapter() {
@@ -1227,68 +1246,63 @@ public class Principal extends JFrame {
         				scrollPane_1_1_2.setViewportView(listZafacones);
         				listZafacones.setModel(modelListaBasureros);
         				
-        				JLabel lblZafacones = new JLabel("Basureros");
-        				lblZafacones.setBounds(404, 212, 97, 14);
-        				MainPanel.add(lblZafacones);
-        				
         				btnAgregarBasurero = new JButton("Agregar basurero");
-        				btnAgregarBasurero.addActionListener(new ActionListener() {
-        					public void actionPerformed(ActionEvent arg0) {
-        						AgregarBasurero addBasurero = new AgregarBasurero(casa);
-				        		addBasurero.setLocationRelativeTo(null);
-				        		addBasurero.setModal(true);
-				        		addBasurero.setVisible(true);
-								casa.getBasureros(modelListaBasureros);
-				        		 
-        					}
-        				});
-        				btnAgregarBasurero.setBounds(404, 320, 135, 23);
-        				MainPanel.add(btnAgregarBasurero);
+        				btnAgregarBasurero.setBounds(28, 124, 135, 23);
+        				panel_5.add(btnAgregarBasurero);
         				
-        				JLabel lblNewLabel_13 = new JLabel("Capacidad:");
-        				lblNewLabel_13.setBounds(578, 230, 68, 14);
-        				MainPanel.add(lblNewLabel_13);
-        				
-        				txtCapacidadZafacon = new JLabel("0");
-        				txtCapacidadZafacon.setBounds(640, 230, 112, 14);
-        				MainPanel.add(txtCapacidadZafacon);
-        				
-        				JLabel lblNewLabel_14 = new JLabel("Total almacenado:");
-        				lblNewLabel_14.setBounds(578, 255, 89, 14);
-        				MainPanel.add(lblNewLabel_14);
-        				
-        				txtBasuraAlmacenada = new JLabel("0");
-        				txtBasuraAlmacenada.setBounds(671, 255, 81, 14);
-        				MainPanel.add(txtBasuraAlmacenada);
-        				
-        				JLabel lblNewLabel_15 = new JLabel("Sugerencia:");
-        				lblNewLabel_15.setBounds(578, 280, 75, 14);
-        				MainPanel.add(lblNewLabel_15);
-        				
-        				txtSugerenciaBasura = new JLabel("");
-        				txtSugerenciaBasura.setBounds(640, 280, 358, 14);
-        				MainPanel.add(txtSugerenciaBasura);
+        				JButton btnVaciarZafacon = new JButton("Vaciar");
+        				btnVaciarZafacon.setBounds(28, 149, 89, 23);
+        				panel_5.add(btnVaciarZafacon);
         				
         				btnQuitarZafacon = new JButton("X");
-        				btnQuitarZafacon.addActionListener(new ActionListener() {
-        					public void actionPerformed(ActionEvent arg0) {
-        						casa.nuevoQuery("quitar_zafacon", basurero);
-        						casa.getBasureros(modelListaBasureros);
-        					}
-        				});
-        				btnQuitarZafacon.setBounds(501, 345, 38, 23);
-        				MainPanel.add(btnQuitarZafacon);
-        				
-        				spnVolumenBasura = new JSpinner();
-        				spnVolumenBasura.setModel(new SpinnerNumberModel(0, 0, 1000, 1));
-        				spnVolumenBasura.setBounds(604, 379, 53, 20);
-        				MainPanel.add(spnVolumenBasura);
+        				btnQuitarZafacon.setBounds(125, 149, 38, 23);
+        				panel_5.add(btnQuitarZafacon);
         				
         				JLabel lblNewLabel_16 = new JLabel("Agregar basura:");
-        				lblNewLabel_16.setBounds(395, 382, 106, 14);
-        				MainPanel.add(lblNewLabel_16);
+        				lblNewLabel_16.setBounds(10, 187, 106, 14);
+        				panel_5.add(lblNewLabel_16);
+        				
+        				txtNombreBasura = new JTextField();
+        				txtNombreBasura.setBounds(95, 183, 68, 20);
+        				panel_5.add(txtNombreBasura);
+        				txtNombreBasura.setColumns(10);
+        				
+        				JLabel lblNewLabel_17 = new JLabel("Volumen:");
+        				lblNewLabel_17.setBounds(173, 187, 46, 14);
+        				panel_5.add(lblNewLabel_17);
+        				
+        				spnVolumenBasura = new JSpinner();
+        				spnVolumenBasura.setBounds(220, 184, 53, 20);
+        				panel_5.add(spnVolumenBasura);
+        				spnVolumenBasura.setModel(new SpinnerNumberModel(0, 0, 1000, 1));
         				
         				btnAgregarBasura = new JButton("Agregar basura");
+        				btnAgregarBasura.setBounds(10, 212, 115, 23);
+        				panel_5.add(btnAgregarBasura);
+        				
+        				txtSugerenciaBasura = new JLabel("");
+        				txtSugerenciaBasura.setBounds(235, 83, 358, 14);
+        				panel_5.add(txtSugerenciaBasura);
+        				
+        				txtBasuraAlmacenada = new JLabel("0");
+        				txtBasuraAlmacenada.setBounds(266, 58, 81, 14);
+        				panel_5.add(txtBasuraAlmacenada);
+        				
+        				txtCapacidadZafacon = new JLabel("0");
+        				txtCapacidadZafacon.setBounds(235, 37, 112, 14);
+        				panel_5.add(txtCapacidadZafacon);
+        				
+        				JLabel lblNewLabel_13 = new JLabel("Capacidad:");
+        				lblNewLabel_13.setBounds(173, 37, 68, 14);
+        				panel_5.add(lblNewLabel_13);
+        				
+        				JLabel lblNewLabel_14 = new JLabel("Total almacenado:");
+        				lblNewLabel_14.setBounds(173, 58, 89, 14);
+        				panel_5.add(lblNewLabel_14);
+        				
+        				JLabel lblNewLabel_15 = new JLabel("Sugerencia:");
+        				lblNewLabel_15.setBounds(173, 83, 75, 14);
+        				panel_5.add(lblNewLabel_15);
         				btnAgregarBasura.addActionListener(new ActionListener() {
         					public void actionPerformed(ActionEvent e) {
         						if(basurero!=null)
@@ -1300,19 +1314,12 @@ public class Principal extends JFrame {
         						
         					}
         				});
-        				btnAgregarBasura.setBounds(671, 378, 135, 23);
-        				MainPanel.add(btnAgregarBasura);
-        				
-        				txtNombreBasura = new JTextField();
-        				txtNombreBasura.setBounds(477, 379, 68, 20);
-        				MainPanel.add(txtNombreBasura);
-        				txtNombreBasura.setColumns(10);
-        				
-        				JLabel lblNewLabel_17 = new JLabel("Volumen:");
-        				lblNewLabel_17.setBounds(555, 382, 46, 14);
-        				MainPanel.add(lblNewLabel_17);
-        				
-        				JButton btnVaciarZafacon = new JButton("Vaciar");
+        				btnQuitarZafacon.addActionListener(new ActionListener() {
+        					public void actionPerformed(ActionEvent arg0) {
+        						casa.nuevoQuery("quitar_zafacon", basurero);
+        						casa.getBasureros(modelListaBasureros);
+        					}
+        				});
         				btnVaciarZafacon.addActionListener(new ActionListener() {
         					public void actionPerformed(ActionEvent e) {
         						if(basurero!=null)
@@ -1325,8 +1332,18 @@ public class Principal extends JFrame {
         						
         					}
         				});
-        				btnVaciarZafacon.setBounds(404, 345, 89, 23);
-        				MainPanel.add(btnVaciarZafacon);
+        				btnAgregarBasurero.addActionListener(new ActionListener() {
+        					public void actionPerformed(ActionEvent arg0) {
+        						AgregarBasurero addBasurero = new AgregarBasurero(casa);
+				        		addBasurero.setLocationRelativeTo(null);
+				        		addBasurero.setModal(true);
+				        		addBasurero.setVisible(true);
+								casa.getBasureros(modelListaBasureros);
+				        		 
+        					}
+        				});
+        				
+        				DefaultListCellRenderer renderer7 = (DefaultListCellRenderer)listZafacones.getCellRenderer();
         
         				btnAgregarElectronico.addActionListener(new ActionListener() {
         					public void actionPerformed(ActionEvent arg0) {
@@ -1335,8 +1352,9 @@ public class Principal extends JFrame {
 					        		addElectronico.setModal(true);
 					        		addElectronico.setVisible(true);
 									casa.getElectronicos(modelListaElectronicos);
-									txtConsumoTotal.setText(String.valueOf(casa.getConsumoElectronicoTotal()));
+									txtConsumoTotal.setText(String.valueOf(casa.getConsumoElectronicoTotal() + " Kwh/mes"));
 									txtAvisoConsumo.setText(casa.getAvisoConsumo());
+									txtPrecioEnergia.setText(String.valueOf(casa.getPrecioElectricoTotal()+ " $RD"));
 
         					}
         				});
@@ -1358,8 +1376,6 @@ public class Principal extends JFrame {
 		
 		DefaultListCellRenderer renderer6 = (DefaultListCellRenderer)listElectronicosZona.getCellRenderer();
 		renderer6.setHorizontalAlignment(JLabel.CENTER);
-		
-		DefaultListCellRenderer renderer7 = (DefaultListCellRenderer)listZafacones.getCellRenderer();
 		renderer7.setHorizontalAlignment(JLabel.CENTER);
 		
 

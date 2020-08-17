@@ -1,63 +1,55 @@
- /*============================MODULO DE SEGURIDAD===================*/
-
-% El sistema experto recibirá información de sensores de movimiento, y de
-% otros tipos, y será alimentado con protocolos de seguridad para
-% gestionar funcionalidades de bloqueo y cierre de entradas principales y
-% ventanas del hogar, analizando sus estados y modificándolos de acuerdo
-% a evaluaciones de eventos específicos que ocurran y que considere
-% puedan representar problemas de seguridad para sus habitantes. Un
-% ejemplo de esto es que cerraría todas las puertas de acceso al hogar si
-% las personas salen o si detecta que todas están durmiendo.
-
-:-dynamic modo_visita/0.
+:-dynamic modo_visita/0. %modo cuando llegen visitar, que mantiene las puertas abiertas
 
 visitantes(on):-not(modo_visita),assertz(modo_visita).
 visitantes(off):-modo_visita,retract(modo_visita).
-
-
 
 %miembros de la familia:
 :-dynamic miembro/1.
 
 %agregar a un nuevo miembro, si ya existe, no lo agrega
-nuevo_miembro(Persona):-
+nuevo_miembro(Persona):- atom(Persona),
     not(miembro(Persona)),
     assertz(miembro(Persona)).
+
+quitar_miembro(Persona) :- not(atom(Persona)),!,fail.
+quitar_miembro(Persona) :- not(miembro(Persona)),!,fail.
+
+quitar_miembro(Persona):-
+    retract(miembro(Persona)),
+    retractall(tiene_miembro(_,Persona)).
 
 quitar_miembro(Persona):-
     (dormido(Persona), retract(dormido(Persona)));
     (salio(Persona), retract(salio(Persona))).
 
-quitar_miembro(Persona):-
-    miembro(Persona),retract(miembro(Persona)),
-    retractall(tiene_miembro(_,Persona)).
 
 
 %listar miembros de la familia.
-get_miembros(Miembros):-setof(Miembro, miembro(Miembro), Miembros).
+get_miembros(Miembros):-findall(Miembro, miembro(Miembro), Miembros).
 
 %Miembros de la familia que estan durmiendo:
 :-dynamic dormido/1.
+ %miembros de la familia salieron:
+:-dynamic salio/1.
 
+dormir(Persona):- not(atom(Persona)),!,fail.
+dormir(Persona):- not(miembro(Persona)),!,fail.
 dormir(Persona):-
-    miembro(Persona), not(dormido(Persona)),
+    not(dormido(Persona)),
     not(salio(Persona)),assertz(dormido(Persona)).
 
-despertar(Persona):-
-    miembro(Persona),dormido(Persona),
-    retract(dormido(Persona)).
+despertar(Persona):-not(atom(Persona)),!,fail.
+despertar(Persona):-not(miembro(Persona)),!,fail.
+despertar(Persona):- dormido(Persona),retract(dormido(Persona)).
 
- %miembros de la familia salieron:
 % Aqui hay que ver que si una persona salio, no puede estar durmiendo y
 % viceversa.
 
-:-dynamic salio/1.
-
-salir(Persona):-
+salir(Persona):-  atom(Persona),
     miembro(Persona), not(salio(Persona)),
     not(dormido(Persona)),assertz(salio(Persona)).
 
-volver(Persona):-
+volver(Persona):- atom(Persona),
     miembro(Persona),salio(Persona),
     retract(salio(Persona)).
 
@@ -163,12 +155,22 @@ cerrar_puertas_automaticas([_|L]):-cerrar_puertas_automaticas(L).
 :-dynamic llave_abierta/1.
 :-dynamic llave_cerrada/1.
 
-nuevo_electronico(Nombre,Consumo):-
+nuevo_electronico_horas(Nombre,ConsumoKW,HorasUso):- atom(Nombre),number(ConsumoKW),number(HorasUso),
     not(electronico(Nombre)),
     assertz(electronico(Nombre)),
-    assertz(automatico(Nombre)),
+    assertz(automatico(Nombre)), %los electronicos son automaticos por defecto
     assertz(apagado(Nombre)),
-    assertz(consumo(Nombre,Consumo)). %Los electronicos son automaticos por defecto
+    Consumo is (ConsumoKW * HorasUso * 30) / 1000, %calculo de consumo mensual
+    assertz(consumo(Nombre,Consumo)).
+
+nuevo_electronico_minutos(Nombre,ConsumoKW,Minutos):- atom(Nombre),number(ConsumoKW),number(Minutos),
+    not(electronico(Nombre)),
+    assertz(electronico(Nombre)),
+    assertz(automatico(Nombre)), %los electronicos son automaticos por defecto
+    assertz(apagado(Nombre)),
+    Consumo is (ConsumoKW * (Minutos/60) * 30) / 1000, %calculo de consumo mensual
+    assertz(consumo(Nombre,Consumo)).
+
 
 quitar_electronico(Electronico):-
     electronico(Electronico),
@@ -201,6 +203,17 @@ suma_lista([H|L],Total):-suma_lista(L,Con), Total is Con + H.
 % regla para devolver el total de consumo de todos los elementos
 % encendidos
 get_total_consumo(Total):- get_consumo_encendidos(Consumos),suma_lista(Consumos,Total).
+
+% Obtener el precio en pesos de lo consumido basado en la realidad en RD
+% y sin subsidios.
+
+get_precio_mensual_total_electrico(Precio):- var(Precio),
+    get_total_consumo(Total),
+    (Total >= 0, Total =< 100, Precio is Total * 35.88,!);
+    (Total >= 0, Total =< 300, Precio is Total * 8.71,!);
+    (Total > 300, Precio is Total * 10.73,!).
+
+
 
 % calculo del consumo mensual de agua estimado
 % segun la cantidad de personas que habiten la casa.
@@ -521,10 +534,13 @@ nuevo_zafacon(Nombre,VolumenMaximo):-atom(Nombre),number(VolumenMaximo),
 
 quitar_zafacon(Nombre):-atom(Nombre),zafacon(Nombre,_,_),retract(zafacon(Nombre,_,_)),retractall(basura(_,_,Nombre)).
 
+total_almacenado_zafacon(NombreBasurero,Total):-atom(NombreBasurero),zafacon(NombreBasurero,_,_),
+    findall(Volumen,basura(_,Volumen,NombreBasurero),Volumenes),suma_lista(Volumenes,Total).
+
 agregar_basura(Zafacon,NombreBasura,Volumen):-
     zafacon(Zafacon,VolumenMaximo,Basuras), %revisando si el zafacon existe
     Volumen =< VolumenMaximo,
-    not(basura(NombreBasura,_,Zafacon)), %revisando si esta basura ya esta en ese zafacon
+    %not(basura(NombreBasura,_,Zafacon)), %revisando si esta basura ya esta en ese zafacon
     findall(Volumen,basura(_,Volumen,Zafacon),Volumenes), %buscando los volumenes de todas las basuras ya dentro del zafacon
     suma_lista(Volumenes,Total),TotalCombinado is Total + Volumen,
     TotalCombinado =< VolumenMaximo, %sumando los volumenes de las basuras que ya estan dentro del zafacon y si el total mas el de la basura que entrare no
@@ -536,11 +552,13 @@ agregar_basura(Zafacon,NombreBasura,Volumen):-
 alerta_basura(NombreZafacon,Sugerencia):-atom(NombreZafacon),var(Sugerencia),
     zafacon(NombreZafacon,VolumenMaximo,_),findall(Volumen,basura(_,Volumen,NombreZafacon),Volumenes), suma_lista(Volumenes,Total),
     Total >= VolumenMaximo - 10,
-    Sugerencia = "Debe de de vaciar este zafacon",!.
+    Sugerencia = "Debe de vaciar este zafacon",!.
 
 alerta_basura(NombreZafacon,Sugerencia):-atom(NombreZafacon),var(Sugerencia),
     zafacon(NombreZafacon,VolumenMaximo,_),findall(Volumen,basura(_,Volumen,NombreZafacon),Volumenes), suma_lista(Volumenes,Total),
-    Total < VolumenMaximo - 20,
+    Total < VolumenMaximo - 10,
     Sugerencia = "A este zafacon le queda espacio",!.
 
 
+vaciar_zafacon(NombreZafacon):-atom(NombreZafacon),zafacon(NombreZafacon,Capacidad,_),
+    retractall(basura(_,_,NombreZafacon)),retract(zafacon(NombreZafacon,Capacidad,_)),assertz(zafacon(NombreZafacon,Capacidad,[])).

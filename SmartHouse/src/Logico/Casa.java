@@ -335,9 +335,23 @@ public class Casa {
 	
 	
 	
-	public boolean addElectronico(String nombre, int consumo)
+	public boolean addElectronicoHoras(String nombre, int consumo, int tiempoConsumo)
 	{
-		String queryText = String.format("nuevo_electronico(%s, %d)", nombre,consumo);
+		String queryText = String.format("nuevo_electronico_horas(%s, %d, %d)", nombre,consumo,tiempoConsumo);
+		q = new Query(queryText);	
+		if(q.hasSolution())
+		{
+			return true;
+		}else
+		{
+			return false;
+		}
+		
+	}
+	
+	public boolean addElectronicoMinutos(String nombre, int consumo, int tiempoConsumo)
+	{
+		String queryText = String.format("nuevo_electronico_minutos(%s, %d, %d)", nombre,consumo,tiempoConsumo);
 		q = new Query(queryText);	
 		if(q.hasSolution())
 		{
@@ -366,25 +380,38 @@ public class Casa {
 		
 	}
 	
-	public int getConsumoElectronico(String nombre)
+	public float getConsumoElectronico(String nombre)
 	{
 		String queryText = String.format("consumo(%s,X)",nombre);
 		q = new Query(queryText);	
 		
 		Map<String, Term> res = q.getSolution();
 		
-		return res.get("X").intValue();
+		return res.get("X").floatValue();
 		
 	}
 	
-	public int getConsumoElectronicoTotal()
+	public float getConsumoElectronicoTotal()
 	{
 		String queryText = String.format("get_total_consumo(Total)");
 		q = new Query(queryText);	
 		
+		
 		Map<String, Term> res = q.getSolution();
 		
-		return res.get("Total").intValue();
+		return res.get("Total").floatValue();
+
+	}
+	
+	public float getPrecioElectricoTotal()
+	{
+		String queryText = String.format("get_precio_mensual_total_electrico(Precio)");
+		q = new Query(queryText);	
+		
+		
+		Map<String, Term> res = q.getSolution();
+		
+		return res.get("Precio").floatValue();
 
 	}
 	
