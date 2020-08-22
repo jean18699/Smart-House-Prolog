@@ -61,12 +61,14 @@ public class Principal extends JFrame {
 	private DefaultListModel<String> modelListaElectronicosZona;
 	private DefaultListModel<String> modelListaPaneles;
 	private DefaultListModel<String> modelListaBasureros;
+	private DefaultListModel<String> modelListaLlaves;
 	private String miembro;
 	private String puerta;
 	private String electronico;
 	private String zona;
 	private String miembroZona;
 	private String electronicoZona;
+	private String llaveAgua;
 	private String basurero;
 	String panelSelected;
 	String horaDiaActual;
@@ -90,9 +92,9 @@ public class Principal extends JFrame {
 	JButton btnProgramarElectro;
 	JSpinner spnApagadoElectro;
 	JSpinner spnTemperatura;
-	JLabel txtLitros;
+	JLabel txtAguaConsumidaLlave;
 	JLabel txtTotalCostoAgua;
-	JLabel txtTotalGalones;
+	JLabel txtTotalAguaConsumida;
 	JButton btnAgregarPanel;
 	JButton btnQuitarPanel;
 	JButton btnCambiarOrientacionPanel;
@@ -113,6 +115,9 @@ public class Principal extends JFrame {
 	JButton btnQuitarZafacon;
 	private JTextField txtNombreBasura;
 	JLabel txtPrecioEnergia;
+	JButton btnAceptarUsoLlave;
+	JSpinner spnConsumoAgua;
+	JLabel txtTotalSalieron;
 	
 	/**
 	 * Launch the application.
@@ -184,6 +189,7 @@ public class Principal extends JFrame {
 		modelListaElectronicosZona = new DefaultListModel<String>();
 		modelListaPaneles = new DefaultListModel<String>();
 		modelListaBasureros = new DefaultListModel<String>();
+		modelListaLlaves = new DefaultListModel<String>();
 		
 		JButton btnAgregarMiembro = new JButton("Agregar");
 		btnAgregarMiembro.addActionListener(new ActionListener() {
@@ -193,7 +199,7 @@ public class Principal extends JFrame {
 				addMiembro.setModal(true);
 				addMiembro.setVisible(true);
 				casa.getMiembros(modelListaMiembros);
-				txtTotalCostoAgua.setText(casa.getFacturaAgua()+"$");
+				
 				//txtLitros.setText(casa.imprimir("get_consumo_total_agua", "Litro"));
 				
 			
@@ -293,19 +299,25 @@ public class Principal extends JFrame {
 			public void actionPerformed(ActionEvent arg0) {
 				if(miembro != null)
 				{
+					
 					if(radFamiliarDurmiendo.isSelected())
 					{
 						casa.dormir(miembro);
 						casa.nuevoQuery("alerta_puertas", "");
 						casa.nuevoQuery("alerta_electronicos", "");
 						casa.nuevoQuery("regular_temperatura", "");
+						txtTotalDormidos.setText(casa.getTotalDormidos());
 						
 						spnTemperatura.setValue(casa.getTemperatura());
 						txtConsumoTotal.setText(String.valueOf(casa.getConsumoElectronicoTotal()));
 						
 					}else
 					{
+						
+						
 						casa.despertar(miembro);
+						txtTotalDormidos.setText(casa.getTotalDormidos());
+					
 					}
 					
 					
@@ -347,10 +359,12 @@ public class Principal extends JFrame {
 						casa.nuevoQuery("alerta_puertas", "");
 						casa.nuevoQuery("alerta_electronicos", "");
 						txtConsumoTotal.setText(String.valueOf(casa.getConsumoElectronicoTotal()));
+						txtTotalSalieron.setText(casa.getTotalFuera());
 						
 					}else
 					{
 						casa.volver(miembro);
+						txtTotalSalieron.setText(casa.getTotalFuera());
 					}
 					
 					
@@ -376,14 +390,6 @@ public class Principal extends JFrame {
 					.addContainerGap(35, Short.MAX_VALUE))
 		);
 		panel.setLayout(gl_panel);
-		
-		JLabel lblTotalDormidos = new JLabel("Dormidos:");
-		lblTotalDormidos.setBounds(155, 133, 62, 14);
-		MainPanel.add(lblTotalDormidos);
-		
-		txtTotalDormidos = new JLabel("total");
-		txtTotalDormidos.setBounds(207, 133, 48, 14);
-		MainPanel.add(txtTotalDormidos);
 	
 		
 		JScrollPane scrollPane_1 = new JScrollPane();
@@ -547,8 +553,9 @@ public class Principal extends JFrame {
         		{
         			casa.nuevoQuery("quitar_miembro", miembro);
         			casa.getMiembros(modelListaMiembros);
-    				txtTotalCostoAgua.setText(casa.getFacturaAgua()+"$");
-    				//txtLitros.setText(casa.imprimir("get_consumo_total_agua", "Litro"));
+    	
+    				txtTotalSalieron.setText(casa.getTotalFuera());
+    				txtTotalDormidos.setText(casa.getTotalDormidos());
         		}
         		
         	}
@@ -768,6 +775,8 @@ public class Principal extends JFrame {
                 				addElectronicoZona.setLocationRelativeTo(null);
                 				addElectronicoZona.setModal(true);
                 				addElectronicoZona.setVisible(true);
+                				casa.getElectronicosZona(modelListaElectronicosZona, zona);
+                				casa.getMiembrosZona(modelListaMiembrosZona, zona);
         					}
         				});
         				btnNewButton.setBounds(10, 467, 337, 23);
@@ -781,7 +790,8 @@ public class Principal extends JFrame {
                 				addMiembroZona.setLocationRelativeTo(null);
                 				addMiembroZona.setModal(true);
                 				addMiembroZona.setVisible(true);
-                				
+                				casa.getElectronicosZona(modelListaElectronicosZona, zona);
+                				casa.getMiembrosZona(modelListaMiembrosZona, zona);
         					}
         				});
         				btnEntrarZona.setBounds(158, 98, 177, 23);
@@ -927,9 +937,21 @@ public class Principal extends JFrame {
         				lblHoraDia.add(spnAnguloPanel);
         				spnAnguloPanel.setModel(new SpinnerNumberModel(15, 15, 90, 1));
         				
-        				JCheckBox checkBox = new JCheckBox("Modo visitantes");
-        				checkBox.setBounds(3, 7, 107, 23);
-        				lblHoraDia.add(checkBox);
+        				JCheckBox chkVisitas = new JCheckBox("Modo visitantes");
+        				chkVisitas.addActionListener(new ActionListener() {
+        					public void actionPerformed(ActionEvent arg0) {
+        						if(chkVisitas.isSelected())
+        						{
+        							casa.ActivarModoVisita();						
+        						}else
+        						{
+        							casa.DesactivarModoVisita();						
+        						}
+        						
+        					}
+        				});
+        				chkVisitas.setBounds(3, 7, 107, 23);
+        				lblHoraDia.add(chkVisitas);
         				
         				JCheckBox chckbxModoEnergiaRenovable = new JCheckBox("Modo energia renovable");
         				chckbxModoEnergiaRenovable.addActionListener(new ActionListener() {
@@ -972,6 +994,22 @@ public class Principal extends JFrame {
         				});
         				btnOptimizarPaneles.setBounds(158, 655, 189, 23);
         				lblHoraDia.add(btnOptimizarPaneles);
+        				
+        				txtTotalSalieron = new JLabel("0");
+        				txtTotalSalieron.setBounds(260, 143, 48, 14);
+        				lblHoraDia.add(txtTotalSalieron);
+        				
+        				JLabel lblFueraDeLa = new JLabel("Fuera de la casa:");
+        				lblFueraDeLa.setBounds(169, 143, 120, 14);
+        				lblHoraDia.add(lblFueraDeLa);
+        				
+        				txtTotalDormidos = new JLabel("0");
+        				txtTotalDormidos.setBounds(225, 127, 48, 14);
+        				lblHoraDia.add(txtTotalDormidos);
+        				
+        				JLabel lblTotalDormidos = new JLabel("Dormidos:");
+        				lblTotalDormidos.setBounds(168, 127, 62, 14);
+        				lblHoraDia.add(lblTotalDormidos);
         				
         				JLabel lblNewLabel_2 = new JLabel("Zonas de la casa");
         				lblNewLabel_2.setBounds(404, 34, 89, 14);
@@ -1048,7 +1086,8 @@ public class Principal extends JFrame {
         				JButton btnQuitar = new JButton("Quitar");
         				btnQuitar.addActionListener(new ActionListener() {
         					public void actionPerformed(ActionEvent e) {
-        						
+        						casa.quitarElectronicoZona(electronico, zona);
+        						casa.getElectronicosZona(modelListaElectronicosZona, zona);
         					}
         				});
         				btnQuitar.setBounds(694, 142, 135, 23);
@@ -1145,29 +1184,29 @@ public class Principal extends JFrame {
         				MainPanel.add(panel_4);
         				panel_4.setLayout(null);
         				
-        				JLabel lblNewLabel_7 = new JLabel("Cantidad estimada de agua a consumir por todos los miembros en litros:");
-        				lblNewLabel_7.setBounds(10, 22, 352, 14);
+        				JLabel lblNewLabel_7 = new JLabel("Cantidad de agua consumida por esta llave:");
+        				lblNewLabel_7.setBounds(10, 22, 216, 14);
         				panel_4.add(lblNewLabel_7);
         				
-        				txtLitros = new JLabel("Total");
-        				txtLitros.setBounds(358, 22, 127, 14);
-        				panel_4.add(txtLitros);
+        				txtAguaConsumidaLlave = new JLabel("Total");
+        				txtAguaConsumidaLlave.setBounds(225, 22, 387, 14);
+        				panel_4.add(txtAguaConsumidaLlave);
         				
         				JLabel lblNewLabel_8 = new JLabel("Costo mensual estimado de agua:");
         				lblNewLabel_8.setBounds(10, 62, 164, 14);
         				panel_4.add(lblNewLabel_8);
         				
         				txtTotalCostoAgua = new JLabel("Total");
-        				txtTotalCostoAgua.setBounds(174, 62, 303, 14);
+        				txtTotalCostoAgua.setBounds(174, 62, 438, 14);
         				panel_4.add(txtTotalCostoAgua);
         				
-        				JLabel lblNewLabel_9 = new JLabel("Cantidad estimada de agua a consumir por todos los miembros en galones:");
-        				lblNewLabel_9.setBounds(10, 42, 363, 14);
+        				JLabel lblNewLabel_9 = new JLabel("Cantidad de agua consumida total:");
+        				lblNewLabel_9.setBounds(10, 42, 175, 14);
         				panel_4.add(lblNewLabel_9);
         				
-        				txtTotalGalones = new JLabel("Total");
-        				txtTotalGalones.setBounds(368, 42, 117, 14);
-        				panel_4.add(txtTotalGalones);
+        				txtTotalAguaConsumida = new JLabel("Total");
+        				txtTotalAguaConsumida.setBounds(187, 42, 425, 14);
+        				panel_4.add(txtTotalAguaConsumida);
         				
         				JPanel panel_2 = new JPanel();
         				panel_2.setBorder(new TitledBorder(null, "Informacion de energia", TitledBorder.LEADING, TitledBorder.TOP, null, null));
@@ -1280,7 +1319,7 @@ public class Principal extends JFrame {
         				panel_5.add(btnAgregarBasura);
         				
         				txtSugerenciaBasura = new JLabel("");
-        				txtSugerenciaBasura.setBounds(235, 83, 358, 14);
+        				txtSugerenciaBasura.setBounds(197, 221, 358, 14);
         				panel_5.add(txtSugerenciaBasura);
         				
         				txtBasuraAlmacenada = new JLabel("0");
@@ -1300,8 +1339,93 @@ public class Principal extends JFrame {
         				panel_5.add(lblNewLabel_14);
         				
         				JLabel lblNewLabel_15 = new JLabel("Sugerencia:");
-        				lblNewLabel_15.setBounds(173, 83, 75, 14);
+        				lblNewLabel_15.setBounds(135, 221, 75, 14);
         				panel_5.add(lblNewLabel_15);
+        				
+        				JButton btnAgregarPuerta_1 = new JButton("Agregar");
+        				btnAgregarPuerta_1.addActionListener(new ActionListener() {
+        					public void actionPerformed(ActionEvent arg0) {
+        						AgregarLlaveAgua addLlave = new AgregarLlaveAgua(casa);
+        						addLlave.setLocationRelativeTo(null);
+        						addLlave.setModal(true);
+        						addLlave.setVisible(true);
+        						casa.getLlavesAgua(modelListaLlaves);
+        						
+        					}
+        				});
+        				btnAgregarPuerta_1.setBounds(357, 123, 89, 23);
+        				panel_5.add(btnAgregarPuerta_1);
+        				
+        				JButton btnQuitarPuerta_1 = new JButton("X");
+        				btnQuitarPuerta_1.addActionListener(new ActionListener() {
+        					public void actionPerformed(ActionEvent e) {
+        						casa.nuevoQuery("quitar_llave", llaveAgua);
+        						casa.getLlavesAgua(modelListaLlaves);
+        					}
+        				});
+        				btnQuitarPuerta_1.setBounds(454, 124, 38, 23);
+        				panel_5.add(btnQuitarPuerta_1);
+        				
+        				JLabel lblLlavesDeAgua = new JLabel("Llaves de agua");
+        				lblLlavesDeAgua.setBounds(357, 15, 97, 23);
+        				panel_5.add(lblLlavesDeAgua);
+        				
+        				JScrollPane scrollPane_1_1_2_1 = new JScrollPane();
+        				scrollPane_1_1_2_1.setBounds(357, 35, 135, 81);
+        				panel_5.add(scrollPane_1_1_2_1);
+        				
+        				JList listLlavesAgua = new JList();
+        				listLlavesAgua.addMouseListener(new MouseAdapter() {
+        					@Override
+        					public void mouseClicked(MouseEvent arg0) {
+        						if(arg0.getClickCount() == 1)
+        						{
+        							int index =listLlavesAgua.locationToIndex(arg0.getPoint());
+        							llaveAgua = (String) listLlavesAgua.getModel().getElementAt(index);
+        							
+        							if(llaveAgua!=null)
+        							{
+        								
+        								txtAguaConsumidaLlave.setText(String.valueOf(casa.getConsumoAgua(llaveAgua)));
+        								spnConsumoAgua.setValue(casa.getTiempoLlave(llaveAgua));
+        								
+        							}
+        						}
+        					}
+        				});
+        				listLlavesAgua.setVisibleRowCount(2);
+        				listLlavesAgua.setSelectionMode(ListSelectionModel.SINGLE_INTERVAL_SELECTION);
+        				scrollPane_1_1_2_1.setViewportView(listLlavesAgua);
+        				
+        				listLlavesAgua.setModel(modelListaLlaves);
+        				
+        				spnConsumoAgua = new JSpinner();
+        				spnConsumoAgua.setModel(new SpinnerNumberModel(new Integer(0), new Integer(0), null, new Integer(1)));
+        				spnConsumoAgua.setBounds(502, 55, 53, 20);
+        				panel_5.add(spnConsumoAgua);
+        				
+        				JLabel lblNewLabel_17_1 = new JLabel("Tiempo de uso");
+        				lblNewLabel_17_1.setBounds(502, 34, 106, 14);
+        				panel_5.add(lblNewLabel_17_1);
+        				
+        				JLabel lblNewLabel_19 = new JLabel("Minutos");
+        				lblNewLabel_19.setBounds(565, 58, 46, 14);
+        				panel_5.add(lblNewLabel_19);
+        				
+        			    btnAceptarUsoLlave = new JButton("Aceptar");
+        			    btnAceptarUsoLlave.addActionListener(new ActionListener() {
+        			    	public void actionPerformed(ActionEvent e) {
+        			    		
+        			    		txtTotalCostoAgua.setText(casa.getFacturaAgua()+" RD$");
+        			    		casa.setConsumoAgua(llaveAgua, Integer.parseInt(spnConsumoAgua.getValue().toString()));
+        			    		txtAguaConsumidaLlave.setText(String.valueOf(casa.getConsumoAgua(llaveAgua) + " m3"));
+        			    		txtTotalAguaConsumida.setText(String.valueOf(casa.getConsumoTotalAgua(llaveAgua) + " m3"));
+        			    		//txtTotalCostoAgua.setText(text);
+        			    	}
+        			    });
+        				btnAceptarUsoLlave.setBounds(502, 83, 89, 23);
+        				panel_5.add(btnAceptarUsoLlave);
+        				
         				btnAgregarBasura.addActionListener(new ActionListener() {
         					public void actionPerformed(ActionEvent e) {
         						if(basurero!=null)
@@ -1375,9 +1499,11 @@ public class Principal extends JFrame {
 		
 		DefaultListCellRenderer renderer6 = (DefaultListCellRenderer)listElectronicosZona.getCellRenderer();
 		renderer6.setHorizontalAlignment(JLabel.CENTER);
+		
 		renderer7.setHorizontalAlignment(JLabel.CENTER);
 		
-
+		DefaultListCellRenderer renderer8 = (DefaultListCellRenderer)listLlavesAgua.getCellRenderer();
+		renderer8.setHorizontalAlignment(JLabel.CENTER);
 		
 	}
 }

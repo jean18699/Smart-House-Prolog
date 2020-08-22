@@ -24,16 +24,33 @@ public class Casa {
 	
 	public Casa()
 	{
-		q = new Query("consult('Smart_house.pl')");
+		q = new Query("consult('src/main/java/Smart_house.pl')");
 		q.hasSolution();
 		
+	}
+	
+	public void ActivarModoVisita()
+	{
+		String queryText = String.format("visitantes(on)");
+		q = new Query(queryText);	
+		q.open();
+		q.getSolution();
 		
 		
 	}
 	
+	public void DesactivarModoVisita()
+	{
+		String queryText = String.format("visitantes(off)");
+		q = new Query(queryText);	
+		q.open();
+		q.getSolution();
+		
+	}
 	
 	public boolean add_miembro(String nombre)
 	{
+
 		String queryText = String.format("nuevo_miembro(%s)", nombre);
 		q = new Query(queryText);	
 		
@@ -43,10 +60,6 @@ public class Casa {
 		}
 		
 		return false;
-		
-		//Si fue posible agregar este nuevo miembro, agregalo a el arreglo de miembros declarado en esta clase
-		
-		//Si se agrego el primer miembro, comienzo a iniciar los threads
 		
 	}
 	
@@ -66,6 +79,38 @@ public class Casa {
 		}
 		
 	}
+	
+	public boolean add_llave(String nombre)
+	{
+
+		String queryText = String.format("nueva_llave(%s)", nombre);
+		q = new Query(queryText);	
+		
+		if(q.hasSolution())
+		{
+			return true;
+		}
+		
+		return false;	
+	}
+	
+	public void getLlavesAgua(DefaultListModel<String> modelListLlaves)
+	{
+		modelListLlaves.clear();
+	
+		String queryText = String.format("llave(X,_,_)");
+	
+		q = new Query(queryText);
+		
+		Map<String, Term>[] res = q.allSolutions();
+		
+		for(int i = 0; i < res.length; i++)
+		{
+			modelListLlaves.add(i, res[i].get("X").toString());
+		}
+		
+	}
+	
 	
 	public void getElectronicos(DefaultListModel<String> modelListElectronicos)
 	{
@@ -89,36 +134,20 @@ public class Casa {
 	
 	public boolean dormir(String nombre) /*throws InterruptedException*/
 	{
-	//	String queryText;
-		//Random rand = new Random();
-		//int index;
-	//	String persona;
-		/*do
-		{*/
+	
+		String queryText = String.format("dormir(%s)", nombre);
+		q = new Query(queryText);
+				
+				
+		if(q.hasSolution())
+		{					
+			return true;
+		}else
+		{
+			return false;
+		}
+
 		
-		/*	if(!miembros.isEmpty()) {
-
-				//Thread.sleep(5000);
-				index = rand.nextInt(miembros.size());
-				
-				persona = miembros.get(index).getNombre();
-				
-		*/		
-				String queryText = String.format("dormir(%s)", nombre);
-				q = new Query(queryText);
-				
-				
-				if(q.hasSolution())
-				{					
-					return true;
-				}else
-				{
-					return false;
-				}
-
-		//	}
-		/*}while(true);*/
-				
 	}
 	
 	public boolean isDormido(String nombre)
@@ -137,26 +166,11 @@ public class Casa {
 	
 	public boolean despertar(String nombre) /*throws InterruptedException*/
 	{
-		//String queryText;
-		//Random rand = new Random();
-		//int index;
-		//String persona;
-		/*do
-		{*/
-		
-			/*if(!miembros.isEmpty()) {
-
-				//Thread.sleep(10000);
-				index = rand.nextInt(miembros.size());
-				
-				persona = miembros.get(index).getNombre();
-				
-				*/
+	
 				String queryText = String.format("despertar(%s)", nombre);
 				q = new Query(queryText);
 				
-			/*	
-				*/
+		
 				if(q.hasSolution())
 				{					
 					return true;
@@ -165,29 +179,10 @@ public class Casa {
 					return false;
 				}
 
-			//}
-		/*}while(true);*/
 				
 	}
 	
-	/*public boolean todosDormidos()
-	{
-		
-		String queryText = String.format("cerrar_puertas_automaticamente()");
-		q = new Query(queryText);
-		
-	/*	
-		
-		if(q.hasSolution())
-		{					
-			return true;
-		}else
-		{
-			return false;
-		}
-		
-	}
-	*/
+	
 	public boolean salir(String nombre)
 	{
 		
@@ -338,6 +333,7 @@ public class Casa {
 	{
 		String queryText = String.format("consumo(%s,X)",nombre);
 		q = new Query(queryText);	
+		q.open();
 		
 		Map<String, Term> res = q.getSolution();
 		
@@ -349,7 +345,7 @@ public class Casa {
 	{
 		String queryText = String.format("get_total_consumo(Total)");
 		q = new Query(queryText);	
-		
+		q.open();
 		
 		Map<String, Term> res = q.getSolution();
 		
@@ -361,7 +357,7 @@ public class Casa {
 	{
 		String queryText = String.format("get_precio_mensual_total_electrico(Precio)");
 		q = new Query(queryText);	
-		
+		q.open();
 		
 		Map<String, Term> res = q.getSolution();
 		
@@ -373,47 +369,76 @@ public class Casa {
 	{
 		String queryText = String.format("sugerencia_energia_utilizada(Sugerencia)");
 		q = new Query(queryText);	
+		q.open();
 		
 		Map<String, Term> res = q.getSolution();
 		
 		return res.get("Sugerencia").toString();
 
 	}
-	
-	public String getFacturaAgua()
+
+	public float getConsumoAgua(String llave)
 	{
-		String queryText = String.format("get_costos_agua(Costo)");
+		String queryText = String.format("get_consumo_llave(%s,Total)",llave);
 		q = new Query(queryText);	
+		q.open();
 		
 		Map<String, Term> res = q.getSolution();
 		
-		
-		String factura = res.get("Costo").toString();
+		return res.get("Total").floatValue();
 
+	}
+	
+	public float getConsumoTotalAgua(String llave)
+	{
+		String queryText = String.format("get_consumo_agua_total(Total)",llave);
+		q = new Query(queryText);	
+		q.open();
+		
+		Map<String, Term> res = q.getSolution();
+		
+		return res.get("Total").floatValue();
+
+	}
+	
+	public int getTiempoLlave(String llave)
+	{
+		String queryText = String.format("get_tiempo_llave(%s,Tiempo)",llave);
+		q = new Query(queryText);	
+		q.open();
+		
+		Map<String, Term> res = q.getSolution();
+		
+		return res.get("Tiempo").intValue();
+
+	}
+	
+	public String getFacturaAgua()
+	{
+		String queryText = String.format("get_precio_mensual_total_agua(Precio)");
+		q = new Query(queryText);	
+		q.open();
+		
+		
+		Map<String, Term> res = q.getSolution();
+			
+		String factura = res.get("Precio").toString();
 
 		return factura;
 
 	}
 	
-	public String getLitrosTotales()
+	public void setConsumoAgua(String llave, int tiempoAbierta)
 	{
-		String queryText = String.format("total_energia_generada(X)");
+		String queryText = String.format("consumo_llave(%s, %d)",llave,tiempoAbierta);
 		q = new Query(queryText);	
-			
+		q = new Query(queryText);	
+		q.open();
+		q.getSolution();
+		
 	
-		if(q.hasSolution())
-		{
-			return q.getSolution().get("X").toString();
-			
-		}else
-		{
-			return null;
-		}
-		
-		
 
 	}
-	
 	
 	
 	public void addPuerta(String nombre)
@@ -587,14 +612,12 @@ public class Casa {
 	{
 		String queryText = String.format("temperaturaHogar(X)");
 		q = new Query(queryText);	
+		q.open();
+	
+		Map<String, Term> res = q.getSolution();
 		
-		if(q.hasSolution())
-		{
-			return Integer.parseInt(q.getSolution().get("X").toString());
-		}else
-		{
-			return -1;
-		}
+		return res.get("X").intValue();
+
 		
 	}
 	
@@ -619,14 +642,13 @@ public class Casa {
 		
 		String queryText = String.format("sugerencia_puertas(Mensaje)");
 		q = new Query(queryText);	
+		q.open();
 		
-		if(q.hasSolution())
-		{
-			return q.getSolution().get("Mensaje").toString();
+		return q.getSolution().get("Mensaje").toString();
 			
-		}
 		
-		return "N/A";
+		
+		
 		
 	}
 	
@@ -664,50 +686,34 @@ public class Casa {
 		
 		String queryText = String.format("panel_solar(%s,Orientacion,_,_)",panel);
 		q = new Query(queryText);	
-			
-	
-		if(q.hasSolution())
-		{
-			return q.getSolution().get("Orientacion").toString();
-			
-		}else
-		{
-			return null;
-		}
-			
+		q.open();
+		
+		Map<String, Term> res = q.getSolution();
+		
+		return res.get("Orientacion").toString();
+					
 	}
 	
 	public int getAnguloPanel(String panel) {
 	
 		String queryText = String.format("panel_solar(%s,_,Angulo,_)",panel);
 		q = new Query(queryText);	
-			
-	
-		if(q.hasSolution())
-		{
-			return Integer.parseInt(q.getSolution().get("Angulo").toString());
-			
-		}else
-		{
-			return -1;
-		}
-			
+		q.open();
+
+		Map<String, Term> res = q.getSolution();
+		
+		return Integer.parseInt(res.get("Angulo").toString());
+				
 	}
 
 	public boolean cambiarOrientacionPanel(String panel,String orientacion) {
 		
 		String queryText = String.format("cambiar_orientacion_panel(%s,%s)",panel,orientacion);
 		q = new Query(queryText);	
-			
+		q.open();
 	
-		if(q.hasSolution())
-		{
-			return true;
-			
-		}else
-		{
-			return false;
-		}
+		q.getSolution();
+		return true;
 			
 	}
 	
@@ -715,16 +721,11 @@ public class Casa {
 		
 		String queryText = String.format("ajustar_panel(%s,%s)",panel,angulo);
 		q = new Query(queryText);	
-			
+		q.open();
 	
-		if(q.hasSolution())
-		{
-			return true;
-			
-		}else
-		{
-			return false;
-		}
+		q.getSolution();
+		
+		return true;
 			
 	}
 
@@ -732,76 +733,83 @@ public class Casa {
 		
 		String queryText = String.format("total_energia_generada(X)");
 		q = new Query(queryText);	
+		q.open();
+		
+		Map<String, Term> res = q.getSolution();
+		
+		return res.get("X").toString();
 			
-	
-		if(q.hasSolution())
-		{
-			return q.getSolution().get("X").toString();
-			
-		}else
-		{
-			return null;
-		}
+		
 	}
 
+	private void addPanelPruebaNorte()
+	{
+		String queryText = String.format("nuevo_panel(ejx1586, norte, 15,0)");
+		q = new Query(queryText);	
+		q.open();
+		q.getSolution();
+		//return q.getSolution().get("Mensaje").toString();
+			
+	}
+	
+	private void addPanelPruebaSur()
+	{
+		String queryText = String.format("nuevo_panel(ejx1586, sur, 15,0)");
+		q = new Query(queryText);	
+		q.open();
+		q.getSolution();
+		//return q.getSolution().get("Mensaje").toString();
+			
+	}
+	
+	private void quitarPanelPrueba()
+	{
+		String queryText = String.format("quitar_panel(ejx1586)");
+		q = new Query(queryText);	
+		q.open();
+		q.getSolution();
+		//return q.getSolution().get("Mensaje").toString();
+			
+	}
+	
+	
 	public String getSugerenciaPanelesNorte() {
 		
 		String sugerencia = null;
 		
-		String queryText = String.format("nuevo_panel(ejx1586,norte,15,0)");
+		addPanelPruebaNorte();
+		
+		String queryText = String.format("sugerencia_posicion_perpendicular_panel(ejx1586,Sugerencia)");
 		q = new Query(queryText);	
+		q.open();
 		
-		q.next();
-		
-		queryText = String.format("sugerencia_posicion_perpendicular_panel(ejx1586,Sugerencia)");
-		q = new Query(queryText);	
-		
-		if(q.hasSolution())
-		{
-			sugerencia =   q.getSolution().get("Sugerencia").toString();
+		Map<String, Term> res = q.getSolution();
+	
+		sugerencia = res.get("Sugerencia").toString();
 			
-		}
+		quitarPanelPrueba();
 		
-		q = new Query("quitar_panel(ejx1586)");
-		
-		if(q.hasSolution())
-		{
-			return sugerencia;
-		}else
-		{
-			return null;
-		}
-		
-		
+		return sugerencia;
+
 	}
 	
 	public String getSugerenciaPanelesSur()
 	{
 		String sugerencia = null;
 		
-		String queryText = String.format("nuevo_panel(ejx1586,sur,15,0)");
+		addPanelPruebaSur();
+		
+		String queryText = String.format("sugerencia_posicion_perpendicular_panel(ejx1586,Sugerencia)");
 		q = new Query(queryText);	
+		q.open();
+				
+		Map<String, Term> res = q.getSolution();
 		
-		q.next();
-		
-		queryText = String.format("sugerencia_posicion_perpendicular_panel(ejx1586,Sugerencia)");
-		q = new Query(queryText);	
-		
-		if(q.hasSolution())
-		{
-			sugerencia =   q.getSolution().get("Sugerencia").toString();
+		sugerencia = res.get("Sugerencia").toString();
 			
-		}
+		quitarPanelPrueba();
 		
-		q = new Query("quitar_panel(ejx1586)");
-		
-		if(q.hasSolution())
-		{
-			return sugerencia;
-		}else
-		{
-			return null;
-		}
+		return sugerencia;
 			
 	}
 	
@@ -857,52 +865,61 @@ public class Casa {
 		
 		String queryText = String.format("zafacon(%s,Capacidad,_)",basurero);
 		q = new Query(queryText);	
+		q.open();
+
+		Map<String, Term> res = q.getSolution();
+		
+		
+		return res.get("Capacidad").toString();
 			
-	
-		if(q.hasSolution())
-		{
-			return q.getSolution().get("Capacidad").toString();
-			
-		}else
-		{
-			return null;
-		}
 	}
 	
 	public String totalAlmacenadoBasurero(String basurero) {
 		
 		String queryText = String.format("total_almacenado_zafacon(%s,Total)",basurero);
 		q = new Query(queryText);	
-			
+		q.open();
 	
-		if(q.hasSolution())
-		{
-			return q.getSolution().get("Total").toString();
+
+		Map<String, Term> res = q.getSolution();
+		
+		return res.get("Total").toString();
 			
-		}else
-		{
-			return null;
-		}
 	}
 
 	public String getSugerenciaBasurero(String basurero)
 	{
 		
-	
 		String queryText = String.format("alerta_basura(%s,Sugerencia)",basurero);
-	
 		q = new Query(queryText);
+		q.open();
 		
-		if(q.hasSolution())
-		{
-			return q.getSolution().get("Sugerencia").toString();
+		Map<String, Term> res = q.getSolution();
+		
+		return res.get("Sugerencia").toString();
 			
-		}else
-		{
-			return null;
-		}
-		
 	}
 
-	
+	public String getTotalDormidos() {
+		String queryText = String.format("get_total_dormidos(Total)");
+		q = new Query(queryText);
+		q.open();
+		
+		Map<String, Term> res = q.getSolution();
+		
+		return res.get("Total").toString();
+
+	}
+
+	public String getTotalFuera() {
+		String queryText = String.format("get_total_fuera(Total)");
+		q = new Query(queryText);
+		q.open();
+		
+		Map<String, Term> res = q.getSolution();
+		
+		return res.get("Total").toString();
+
+	}
+
 }

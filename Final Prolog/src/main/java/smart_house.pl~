@@ -16,7 +16,9 @@ quitar_miembro(Persona) :- not(miembro(Persona)),!,fail.
 
 quitar_miembro(Persona):-
     retract(miembro(Persona)),
-    retractall(tiene_miembro(_,Persona)),
+    retractall(tiene_miembro(_,Persona)).
+
+quitar_miembro(Persona):-
     (dormido(Persona), retract(dormido(Persona)),!);
     (salio(Persona), retract(salio(Persona)),!).
 

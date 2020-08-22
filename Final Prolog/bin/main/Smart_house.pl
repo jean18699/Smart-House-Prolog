@@ -16,9 +16,11 @@ quitar_miembro(Persona) :- not(miembro(Persona)),!,fail.
 
 quitar_miembro(Persona):-
     retract(miembro(Persona)),
-    retractall(tiene_miembro(_,Persona)),
-    (dormido(Persona), retract(dormido(Persona)),!);
-    (salio(Persona), retract(salio(Persona)),!).
+    retractall(tiene_miembro(_,Persona)).
+
+quitar_miembro(Persona):-
+    (dormido(Persona), retract(dormido(Persona)));
+    (salio(Persona), retract(salio(Persona))).
 
 
 
@@ -50,14 +52,6 @@ salir(Persona):-  atom(Persona),
 volver(Persona):- atom(Persona),
     miembro(Persona),salio(Persona),
     retract(salio(Persona)).
-
-
-get_total_dormidos(Total):- findall(Persona, dormido(Persona),L), length(L,Total).
-get_total_fuera(Total):- findall(Persona, salio(Persona),L), length(L,Total).
-
-
-
-
 
 %control de puertas
 :-dynamic puerta/1.
@@ -140,6 +134,8 @@ todos_salieron([_|Cola]):- todos_salieron(Cola).
 cerrar_puertas_automaticas([]):-!.
 cerrar_puertas_automaticas([H|L]):-puerta(H),automatico(H),cerrar_puerta(H),cerrar_puertas_automaticas(L).
 cerrar_puertas_automaticas([_|L]):-cerrar_puertas_automaticas(L).
+
+
 
 
 

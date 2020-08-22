@@ -57,23 +57,24 @@ volver(Persona):- atom(Persona),
 :-dynamic puerta/1.
 :-dynamic puerta_abierta/1.
 :-dynamic puerta_cerrada/1.
+:-dynamic automatico/1. %automatico(nombreElectronico).
+:-dynamic manual/1.
 
-
-nueva_puerta(Puerta):-
+nueva_puerta(Puerta):- atom(Puerta),
     not(puerta(Puerta)), assertz(automatico(Puerta)),
     assertz(puerta_abierta(Puerta)),assertz(puerta(Puerta)).
 
-quitar_puerta(Puerta):-
+quitar_puerta(Puerta):- atom(Puerta),
     puerta(Puerta),
     ((automatico(Puerta), retract(automatico(Puerta)));
     (manual(Puerta), retract(manual(Puerta)))),
     retract(puerta(Puerta)).
 
-abrir_puerta(Puerta):-
+abrir_puerta(Puerta):- atom(Puerta),
     puerta(Puerta),not(puerta_abierta(Puerta)),
     retract(puerta_cerrada(Puerta)),assertz(puerta_abierta(Puerta)).
 
-cerrar_puerta(Puerta):-
+cerrar_puerta(Puerta):- atom(Puerta),
     puerta(Puerta),not(puerta_cerrada(Puerta)),
     retract(puerta_abierta(Puerta)),assertz(puerta_cerrada(Puerta)).
 
@@ -90,23 +91,23 @@ get_puertas_automaticas(Puertas):-findall(Puerta,(puerta(Puerta),automatico(Puer
 
 % Capacidad de cambiar el modo de uso de un electronico, controlado por
 % la casa o por la persona
-modo_manual(Electronico):- %Para los electronicos
-    electronico(Electronico),!,not(manual(Electronico)),!,
+modo_manual(Electronico):- atom(Electronico),%Para los electronicos
+    electronico(Electronico),not(manual(Electronico)),
     retract(automatico(Electronico)),
     assertz(manual(Electronico)).
 
-modo_manual_puerta(Puerta):- %Para las puertas
-    puerta(Puerta),!,not(manual(Puerta)),!,
+modo_manual_puerta(Puerta):- atom(Puerta), %Para las puertas
+    puerta(Puerta),not(manual(Puerta)),
     retract(automatico(Puerta)),
     assertz(manual(Puerta)).
 
 modo_automatico(Electronico):-
-    electronico(Electronico),!, not(automatico(Electronico)),!,
+    electronico(Electronico), not(automatico(Electronico)),
     retract(manual(Electronico)), %ya no es manual
     assertz(automatico(Electronico)). %ahora es automatico
 
 modo_automatico_puerta(Puerta):- %Para las puertas
-    puerta(Puerta),!, not(automatico(Puerta)),!,
+    puerta(Puerta), not(automatico(Puerta)),
     retract(manual(Puerta)), %ya no es manual
     assertz(automatico(Puerta)). %ahora es automatico
 
@@ -146,8 +147,6 @@ cerrar_puertas_automaticas([_|L]):-cerrar_puertas_automaticas(L).
 /*=============================================================MODULO DE RECURSOS================================================================================================*/
 
 :-dynamic electronico/1. %electronico(nombreElectronico).
-:-dynamic automatico/1. %automatico(nombreElectronico).
-:-dynamic manual/1. %manual(nombreElectronico).
 :-dynamic encendido/1. %encendido(nombreElectronico).
 :-dynamic apagado/1. %apagado(nombreElectronico).
 :-dynamic consumo/2. %consumo(Nombre,Consumo).
@@ -172,7 +171,7 @@ nuevo_electronico_minutos(Nombre,ConsumoKW,Minutos):- atom(Nombre),number(Consum
     assertz(consumo(Nombre,Consumo)).
 
 
-quitar_electronico(Electronico):-
+quitar_electronico(Electronico):- atom(Electronico),
     electronico(Electronico),
     retract(electronico(Electronico)),
     retract(consumo(Electronico,_)),
@@ -182,18 +181,19 @@ quitar_electronico(Electronico):-
     (apagado(Electronico), retract(apagado(Electronico))),
     retractall(tiene_electronico(_,Electronico)).
 
-encender(Electronico):-
+encender(Electronico):- atom(Electronico),
     electronico(Electronico),
     not(encendido(Electronico)),
     retract(apagado(Electronico)), assertz(encendido(Electronico)).
 
 
-apagar(Electronico):-
+apagar(Electronico):- atom(Electronico),
     electronico(Electronico),
     not(apagado(Electronico)),
     retract(encendido(Electronico)), assertz(apagado(Electronico)).
 
-get_consumo_encendidos(Consumos):-findall(Consumo, (consumo(Electronico,Consumo),encendido(Electronico)),Consumos).
+get_consumo_encendidos(Consumos):- var(Consumos),
+    findall(Consumo, (consumo(Electronico,Consumo),encendido(Electronico)),Consumos).
 
 % regla que usaremos para, como bien dice su nombre, sumar elementos en
 % una lista
@@ -202,7 +202,8 @@ suma_lista([H|L],Total):-suma_lista(L,Con), Total is Con + H.
 
 % regla para devolver el total de consumo de todos los elementos
 % encendidos
-get_total_consumo(Total):- get_consumo_encendidos(Consumos),suma_lista(Consumos,Total).
+get_total_consumo(Total):- var(Total),
+    get_consumo_encendidos(Consumos),suma_lista(Consumos,Total).
 
 % Obtener el precio en pesos de lo consumido basado en la realidad en RD
 % y sin subsidios.
@@ -216,43 +217,41 @@ get_precio_mensual_total_electrico(Precio):- var(Precio),
 
 
 % calculo del consumo mensual de agua estimado
-% segun la cantidad de personas que habiten la casa.
+
 
 % Se investigo lo siguiente:
 
-%1 m3 = 1.000 litros
-%1 litro = 4 vasos llenos
-%1 m3 = 4.000 vasos.
+%1 m3 = 1 litro
+%Las llaves de agua consumen estimadamente 4 litros por minuto.
 
-%El consumo promedio mensual de agua por
-% persona es de máximo 4 m3. Multiplica este valor por la cantidad de
-% personas que viven en tu casa y obtendrás el consumo promedio mensual
-% del hogar.
+%Llaves de agua
+:-dynamic llave/2. %llave(nombre, consumo). -> llave de agua.
 
-get_consumo_total_agua(Total):- var(Total),
-    get_miembros(Miembros),length(Miembros,Cant),
-    Total is Cant * 4000. %quiero m3 en litros, asi que 4 x 1000 litros = 4000 litros promedio por persona
+nueva_llave(Nombre):-atom(Nombre),
+not(llave(Nombre, _)),
+assertz(llave(Nombre, 0)).
 
-% Ahora queremos saber el costo de agua en dolares segun los litros, y
-% para esto primero lo transformamos a galones internacionales o
-% estadounidenes:
+quitar_llave(Nombre):- atom(Nombre),
+llave(Nombre, _),
+retract(llave(Nombre, _)).
 
-%1 galon internacional = 3,785 litros
-%1 litro USA = 0.2642 galones
+% Las llaves consumen 4 litros por minuto. Como queremos el valor en M3
+% dividimos el tiempo que estuvo abierta por 4 entre 1000
+consumo_llave(Llave, TiempoAbierta):- atom(Llave), integer(TiempoAbierta),
+    llave(Llave,_),l
+    Total is (TiempoAbierta * 4)/1000,
+    retract(llave(Llave,_)),assertz(llave(Llave,Total)).
 
-%Entonces la formula: TotalLitros * 0.2642.
+get_consumo_llave(Llave,Total):- atom(Llave), llave(Llave,Total).
 
-litro_a_galon(Litros,Galones):- (integer(Litros);float(Litros)),
-    Galones is Litros * 0.2642,!.
+get_consumo_agua_total(Total):-findall(Consumo, (llave(_,Consumo)), ListaConsumos),
+    suma_lista(ListaConsumos,Total).
 
-% en USA 4.70$ por 1000 galones. Asi que con las funcion creada de litro
-% a galon obtendre los galones, saco el piso en el caso de que salga
-% algun valor como 1215 galones para obtener 1000 galones exactos y
-% multiplicarlos por 4.70 dolares.
+get_precio_mensual_total_agua(Precio):-var(Precio),
+get_consumo_agua_total(Total),
+Precio is Total * 99.5.
 
-get_costos_agua(Costo):-
-    get_consumo_total_agua(Total),litro_a_galon(Total,Galones),
-    CantidadMilGalones is Galones / 1000, floor(CantidadMilGalones,G), Costo is 4.70 * G.
+
 
 % Agregando configuracion de dispositivos que reaccionen a si hay
 % personas o no en la habitacion
@@ -298,10 +297,10 @@ quitar_miembro_lugar(Miembro, Lugar):-
     tiene_miembro(Lugar, Miembro),
     retract(tiene_miembro(Lugar, Miembro)).
 
-get_miembros_lugar(Lugar, Miembros):-
+get_miembros_lugar(Lugar, Miembros):- atom(Lugar), var(Miembros),
     findall(Miembro, tiene_miembro(Lugar, Miembro), Miembros).
 
-tiene_miembros(Lugar):-
+tiene_miembros(Lugar):- atom(Lugar),
     get_miembros_lugar(Lugar, Miembros),
     length(Miembros, T), T > 0.
 
@@ -318,7 +317,8 @@ alerta_nadie_lugar(Lugar):-
     not(tiene_miembros(Lugar)),tiene_electronicos(Lugar),
     get_electronicos_lugar(Lugar,Electronicos),apagar_dispositivos(Electronicos).
 
-get_all_lugares(Lugares):-findall(Lugar,zonaCasa(Lugar),Lugares).
+get_all_lugares(Lugares):- var(Lugares),
+    findall(Lugar,zonaCasa(Lugar),Lugares).
 
 check_all_lugares([]):-!.
 check_all_lugares([H|L]):-alerta_nadie_lugar(H),check_all_lugares(L).
@@ -381,8 +381,11 @@ sugerencia_puertas(Mensaje):- var(Mensaje),
 % regla para apagar un dispositivo electronico luego de un lapso de
 % tiempo
 
-programar_apagado(Electronico,Tiempo):-electronico(Electronico),integer(Tiempo), not(apagado(Electronico)),
-    (temporizado(Electronico,_), retract(temporizado(Electronico,_)), assertz(temporizado(Electronico,Tiempo)));
+programar_apagado(Electronico,Tiempo):-atom(Electronico),integer(Tiempo),
+    electronico(Electronico),
+    not(apagado(Electronico)),
+   (temporizado(Electronico,_), retract(temporizado(Electronico,_)),
+    assertz(temporizado(Electronico,Tiempo)));
     assertz(temporizado(Electronico,Tiempo)).
 
 apagar_temporizados([]):-!.
@@ -450,7 +453,7 @@ nuevo_panel(Nombre,Orientacion,Angulo,Energia):-atom(Nombre),atom(Orientacion), 
 quitar_panel(Nombre):-atom(Nombre),
     panel_solar(Nombre,_,_,_),retract(panel_solar(Nombre,_,_,_)).
 
-ajustar_panel(Nombre,Angulo):-
+ajustar_panel(Nombre,Angulo):- atom(Nombre), number(Angulo),
     panel_solar(Nombre,X,_,Energia),retract(panel_solar(Nombre,X,_,_)),
     assertz(panel_solar(Nombre,X,Angulo,Energia)).
 
@@ -472,7 +475,7 @@ sugerencia_posicion_perpendicular_panel(Nombre,Posicion):-panel_solar(Nombre,nor
     PosPerpend is P - 90,
     abs(PosPerpend, AbsPosPerpend),
     AbsPosPerpend = Angulo,
-    Posicion = "Estos paneles ya estan en su angulo optimo",!,fail.
+    Posicion = "Estos paneles ya estan en su angulo optimo",!.
 
 sugerencia_posicion_perpendicular_panel(Nombre,Posicion):-panel_solar(Nombre,norte,_,_),
     horaDiaActual(Hora),posicion_sol_tiempo(Hora,norte,P),
@@ -485,7 +488,7 @@ sugerencia_posicion_perpendicular_panel(Nombre,Posicion):- panel_solar(Nombre,su
     horaDiaActual(Hora),posicion_sol_tiempo(Hora,sur,P), PosPerpend is P - 90,
     abs(PosPerpend, AbsPosPerpend),
     AbsPosPerpend = Angulo,
-    Posicion =  "Estos paneles ya estan en su angulo optimo",!,fail.
+    Posicion =  "Estos paneles ya estan en su angulo optimo",!.
 
 sugerencia_posicion_perpendicular_panel(Nombre,Posicion):- panel_solar(Nombre,sur,_,_),
     horaDiaActual(Hora),posicion_sol_tiempo(Hora,sur,P), PosPerpend is P - 90,
@@ -505,7 +508,8 @@ optimizar_paneles():-
 
 %Queremos saber la energia total generada por todos los paneles:
 
-total_energia_generada(Total):-findall(Energia,panel_solar(_,_,_,Energia),Generado),suma_lista(Generado,Total).
+total_energia_generada(Total):- var(Total),
+    findall(Energia,panel_solar(_,_,_,Energia),Generado),suma_lista(Generado,Total).
 
 
 
