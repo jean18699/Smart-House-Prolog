@@ -17,25 +17,25 @@ import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
 import javax.swing.JSpinner;
 import javax.swing.SpinnerNumberModel;
+import javax.swing.JComboBox;
+import javax.swing.DefaultComboBoxModel;
 
-public class AgregarBasurero extends JDialog {
+public class AgregarElectronico extends JDialog {
 
 	private final JPanel contentPanel = new JPanel();
 	private JTextField txtNombre;
 	private Casa casa;
 	JSpinner spnConsumo;
 
-	public AgregarBasurero(Casa casa) {
-		setResizable(false);
-		setTitle("Agregar nuevo basurero");
-
-		setBounds(100, 100, 335, 155);
+	public AgregarElectronico(Casa casa) {
+		setTitle("Agregar nuevo electronico");
+		setBounds(100, 100, 335, 174);
 		getContentPane().setLayout(new BorderLayout());
 		contentPanel.setBorder(new EmptyBorder(5, 5, 5, 5));
 		getContentPane().add(contentPanel, BorderLayout.CENTER);
 		contentPanel.setLayout(null);
 		{
-			JLabel lblNombre = new JLabel("Nombre del basurero:");
+			JLabel lblNombre = new JLabel("Nombre del electronico:");
 			lblNombre.setBounds(17, 13, 113, 14);
 			contentPanel.add(lblNombre);
 		}
@@ -47,8 +47,8 @@ public class AgregarBasurero extends JDialog {
 			txtNombre.setColumns(20);
 		}
 		{
-			JLabel lblConsumo = new JLabel("Capacidad:");
-			lblConsumo.setBounds(73, 38, 66, 14);
+			JLabel lblConsumo = new JLabel("Consumo:");
+			lblConsumo.setBounds(82, 38, 48, 14);
 			contentPanel.add(lblConsumo);
 		}
 		{
@@ -57,6 +57,24 @@ public class AgregarBasurero extends JDialog {
 			spnConsumo.setBounds(135, 35, 78, 20);
 			contentPanel.add(spnConsumo);
 		}
+		
+		JLabel Kw = new JLabel("Kwh");
+		Kw.setBounds(219, 38, 46, 14);
+		contentPanel.add(Kw);
+		
+		JLabel lblNewLabel = new JLabel("Tiempo de uso diario:");
+		lblNewLabel.setBounds(17, 69, 113, 14);
+		contentPanel.add(lblNewLabel);
+		
+		JSpinner spnTiempo = new JSpinner();
+		spnTiempo.setBounds(135, 66, 48, 20);
+		contentPanel.add(spnTiempo);
+		
+		JComboBox<String> cmbTiempo = new JComboBox<String>();
+		cmbTiempo.setModel(new DefaultComboBoxModel(new String[] {"Horas", "Minutos"}));
+		cmbTiempo.setSelectedIndex(0);
+		cmbTiempo.setBounds(193, 66, 108, 20);
+		contentPanel.add(cmbTiempo);
 		{
 			JPanel buttonPane = new JPanel();
 			buttonPane.setLayout(new FlowLayout(FlowLayout.RIGHT));
@@ -65,7 +83,19 @@ public class AgregarBasurero extends JDialog {
 				JButton okButton = new JButton("OK");
 				okButton.addActionListener(new ActionListener() {
 					public void actionPerformed(ActionEvent arg0) {
-						casa.addBasurero(txtNombre.getText(), spnConsumo.getValue().toString());
+						//casa.addElectronico(txtNombre.getText(), );
+						System.out.println((int) spnConsumo.getValue());
+						
+						
+						if(cmbTiempo.getSelectedIndex() == 0)
+						{
+							casa.addElectronicoHoras(txtNombre.getText(),(int) spnConsumo.getValue(),(int) spnTiempo.getValue());
+								
+						}else
+						{
+							casa.addElectronicoMinutos(txtNombre.getText(),(int) spnConsumo.getValue(),(int) spnTiempo.getValue());
+						}
+						//casa.addPuerta(txtNombre.getText());
 						dispose();
 					}
 				});
@@ -85,5 +115,4 @@ public class AgregarBasurero extends JDialog {
 			}
 		}
 	}
-
 }

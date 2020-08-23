@@ -15,47 +15,28 @@ import javax.swing.JTextField;
 import javax.swing.SwingConstants;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
-import javax.swing.JSpinner;
-import javax.swing.SpinnerNumberModel;
 
-public class AgregarBasurero extends JDialog {
+public class AgregarMiembro extends JDialog {
 
 	private final JPanel contentPanel = new JPanel();
 	private JTextField txtNombre;
 	private Casa casa;
-	JSpinner spnConsumo;
 
-	public AgregarBasurero(Casa casa) {
-		setResizable(false);
-		setTitle("Agregar nuevo basurero");
-
-		setBounds(100, 100, 335, 155);
+	public AgregarMiembro(Casa casa) {
+		setBounds(100, 100, 335, 119);
 		getContentPane().setLayout(new BorderLayout());
+		contentPanel.setLayout(new FlowLayout());
 		contentPanel.setBorder(new EmptyBorder(5, 5, 5, 5));
 		getContentPane().add(contentPanel, BorderLayout.CENTER);
-		contentPanel.setLayout(null);
 		{
-			JLabel lblNombre = new JLabel("Nombre del basurero:");
-			lblNombre.setBounds(17, 13, 113, 14);
+			JLabel lblNombre = new JLabel("Nombre de la persona:");
 			contentPanel.add(lblNombre);
 		}
 		{
 			txtNombre = new JTextField();
-			txtNombre.setBounds(135, 10, 166, 20);
 			txtNombre.setHorizontalAlignment(SwingConstants.LEFT);
 			contentPanel.add(txtNombre);
 			txtNombre.setColumns(20);
-		}
-		{
-			JLabel lblConsumo = new JLabel("Capacidad:");
-			lblConsumo.setBounds(73, 38, 66, 14);
-			contentPanel.add(lblConsumo);
-		}
-		{
-			spnConsumo = new JSpinner();
-			spnConsumo.setModel(new SpinnerNumberModel(new Integer(1), new Integer(1), null, new Integer(1)));
-			spnConsumo.setBounds(135, 35, 78, 20);
-			contentPanel.add(spnConsumo);
 		}
 		{
 			JPanel buttonPane = new JPanel();
@@ -65,7 +46,7 @@ public class AgregarBasurero extends JDialog {
 				JButton okButton = new JButton("OK");
 				okButton.addActionListener(new ActionListener() {
 					public void actionPerformed(ActionEvent arg0) {
-						casa.addBasurero(txtNombre.getText(), spnConsumo.getValue().toString());
+						casa.add_miembro(txtNombre.getText());
 						dispose();
 					}
 				});
