@@ -19,8 +19,8 @@ quitar_miembro(Persona):-
     retractall(tiene_miembro(_,Persona)).
 
 quitar_miembro(Persona):-
-    (dormido(Persona), retract(dormido(Persona)));
-    (salio(Persona), retract(salio(Persona))).
+    (dormido(Persona), retract(dormido(Persona)),!);
+    (salio(Persona), retract(salio(Persona)),!).
 
 
 
@@ -52,6 +52,14 @@ salir(Persona):-  atom(Persona),
 volver(Persona):- atom(Persona),
     miembro(Persona),salio(Persona),
     retract(salio(Persona)).
+
+
+get_total_dormidos(Total):- findall(Persona, dormido(Persona),L), length(L,Total).
+get_total_fuera(Total):- findall(Persona, salio(Persona),L), length(L,Total).
+
+
+
+
 
 %control de puertas
 :-dynamic puerta/1.
@@ -142,8 +150,6 @@ cerrar_puertas_automaticas([_|L]):-cerrar_puertas_automaticas(L).
 
 
 
-
-
 /*=============================================================MODULO DE RECURSOS================================================================================================*/
 
 :-dynamic electronico/1. %electronico(nombreElectronico).
@@ -225,26 +231,28 @@ get_precio_mensual_total_electrico(Precio):- var(Precio),
 %Las llaves de agua consumen estimadamente 4 litros por minuto.
 
 %Llaves de agua
-:-dynamic llave/2. %llave(nombre, consumo). -> llave de agua.
+:-dynamic llave/3. %llave(nombre, tiempoAbierta, consumo). -> llave de agua.
 
 nueva_llave(Nombre):-atom(Nombre),
-not(llave(Nombre, _)),
-assertz(llave(Nombre, 0)).
+not(llave(Nombre, _,_)),
+assertz(llave(Nombre, 0,0)).
 
 quitar_llave(Nombre):- atom(Nombre),
-llave(Nombre, _),
-retract(llave(Nombre, _)).
+llave(Nombre, _,_),
+retract(llave(Nombre, _,_)).
 
 % Las llaves consumen 4 litros por minuto. Como queremos el valor en M3
 % dividimos el tiempo que estuvo abierta por 4 entre 1000
 consumo_llave(Llave, TiempoAbierta):- atom(Llave), integer(TiempoAbierta),
-    llave(Llave,_),l
+    llave(Llave,_,_),
     Total is (TiempoAbierta * 4)/1000,
-    retract(llave(Llave,_)),assertz(llave(Llave,Total)).
+    retract(llave(Llave,_,_)),assertz(llave(Llave,TiempoAbierta,Total)).
 
-get_consumo_llave(Llave,Total):- atom(Llave), llave(Llave,Total).
+get_consumo_llave(Llave,Total):- atom(Llave), llave(Llave,_,Total).
 
-get_consumo_agua_total(Total):-findall(Consumo, (llave(_,Consumo)), ListaConsumos),
+get_tiempo_llave(Llave,Tiempo):- atom(Llave), llave(Llave,Tiempo,_).
+
+get_consumo_agua_total(Total):-findall(Consumo, (llave(_,_,Consumo)), ListaConsumos),
     suma_lista(ListaConsumos,Total).
 
 get_precio_mensual_total_agua(Precio):-var(Precio),
