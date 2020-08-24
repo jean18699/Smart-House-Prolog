@@ -213,10 +213,9 @@ get_total_consumo(Total):- var(Total),
 % y sin subsidios.
 
 get_precio_mensual_total_electrico(Precio):- var(Precio),
-    get_total_consumo(Total),
-    (Total >= 0, Total =< 100, Precio is Total * 35.88,!);
-    (Total >= 0, Total =< 300, Precio is Total * 8.71,!);
-    (Total > 300, Precio is Total * 10.73,!).
+    (get_total_consumo(Total), Total >= 0, Total =< 100, Precio is Total * 35.88,!);
+    (get_total_consumo(Total), Total >= 0, Total =< 300, Precio is Total * 8.71,!);
+    (get_total_consumo(Total), Precio is Total * 10.73,!).
 
 
 

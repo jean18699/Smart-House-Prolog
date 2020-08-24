@@ -26,7 +26,7 @@ public class AgregarBasurero extends JDialog {
 	JSpinner spnConsumo;
 
 	public AgregarBasurero(Casa casa) {
-		setTitle("Agregar nueva puerta");
+		setTitle("Agregar nuevo basurero:");
 		setBounds(100, 100, 335, 155);
 		getContentPane().setLayout(new BorderLayout());
 		contentPanel.setBorder(new EmptyBorder(5, 5, 5, 5));

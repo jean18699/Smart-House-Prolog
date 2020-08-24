@@ -23,6 +23,8 @@ public class AgregarElectronicoZona extends JDialog {
 	private Casa casa; 
 
 	public AgregarElectronicoZona(String miembro, Casa casa) {
+		setTitle("Asignar electronico:");
+		setResizable(false);
 		setBounds(100, 100, 335, 119);
 		getContentPane().setLayout(new BorderLayout());
 		contentPanel.setLayout(new FlowLayout());

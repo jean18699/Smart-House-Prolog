@@ -28,7 +28,8 @@ public class AgregarPanelSolar extends JDialog {
 	JSpinner spnEnergia;
 
 	public AgregarPanelSolar(Casa casa) {
-		setTitle("Agregar nueva puerta");
+		setResizable(false);
+		setTitle("Agregar nuevo panel");
 		setBounds(100, 100, 271, 162);
 		getContentPane().setLayout(new BorderLayout());
 		contentPanel.setBorder(new EmptyBorder(5, 5, 5, 5));
@@ -68,6 +69,10 @@ public class AgregarPanelSolar extends JDialog {
 		cmbOrientacion.setSelectedIndex(0);
 		cmbOrientacion.setBounds(85, 38, 78, 20);
 		contentPanel.add(cmbOrientacion);
+		
+		JLabel lblNewLabel_1 = new JLabel("kwh");
+		lblNewLabel_1.setBounds(199, 66, 46, 14);
+		contentPanel.add(lblNewLabel_1);
 		{
 			JPanel buttonPane = new JPanel();
 			buttonPane.setLayout(new FlowLayout(FlowLayout.RIGHT));

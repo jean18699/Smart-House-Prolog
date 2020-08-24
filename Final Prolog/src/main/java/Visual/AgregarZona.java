@@ -23,6 +23,8 @@ public class AgregarZona extends JDialog {
 	private Casa casa;
 
 	public AgregarZona(Casa casa) {
+		setTitle("Agregar nueva zona de la casa");
+		setResizable(false);
 		setBounds(100, 100, 335, 119);
 		getContentPane().setLayout(new BorderLayout());
 		contentPanel.setLayout(new FlowLayout());

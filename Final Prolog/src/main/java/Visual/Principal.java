@@ -572,7 +572,7 @@ public class Principal extends JFrame {
         radElectroEncendido.addActionListener(new ActionListener() {
         	public void actionPerformed(ActionEvent e) {
         		casa.nuevoQuery("encender",electronico);
-        		txtConsumoTotal.setText(String.valueOf(casa.getConsumoElectronicoTotal() + " Kw/mes"));
+        		txtConsumoTotal.setText(String.valueOf(casa.getConsumoElectronicoTotal() + " Kwh/mes"));
         		txtAvisoConsumo.setText(casa.getAvisoConsumo());
         		txtPrecioEnergia.setText(String.valueOf(casa.getPrecioElectricoTotal()+ " $RD"));
         	}
@@ -1078,6 +1078,9 @@ public class Principal extends JFrame {
         						casa.quitarMiembroZona(miembroZona, zona);
         						casa.getMiembrosZona(modelListaMiembrosZona, zona);
         						casa.nuevoQuery("alerta_nadie_lugar", zona);
+        						txtConsumoTotal.setText(String.valueOf(casa.getConsumoElectronicoTotal() + " Kw/mes"));
+        		        		txtAvisoConsumo.setText(casa.getAvisoConsumo());
+        		        		txtPrecioEnergia.setText(String.valueOf(casa.getPrecioElectricoTotal()+ " $RD"));
         					}
         				});
         				btnSalirDeLa.setBounds(549, 142, 135, 23);

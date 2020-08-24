@@ -23,6 +23,8 @@ public class AgregarMiembroZona extends JDialog {
 	private Casa casa;
 
 	public AgregarMiembroZona(String miembro, Casa casa) {
+		setTitle("Asignar miembro:");
+		setResizable(false);
 		setBounds(100, 100, 335, 119);
 		getContentPane().setLayout(new BorderLayout());
 		contentPanel.setLayout(new FlowLayout());
